@@ -6,8 +6,8 @@ import { fileURLToPath } from 'url';
 import multer from 'multer';
 import { v4 as uuidv4 } from 'uuid';
 import { google } from 'googleapis';
-import admin from 'firebase-admin';
-import { getFirestore } from 'firebase-admin/firestore';
+import { Firestore } from '@google-cloud/firestore';
+import { GoogleAuth } from 'google-auth-library';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,16 +30,15 @@ if (fs.existsSync(ENV_PATH)) {
   });
 }
 
-// --- FIREBASE ---
+// --- FIRESTORE (tanpa firebase-admin) ---
 const pk = process.env.FIREBASE_PRIVATE_KEY?.replace(/^"|"$/g, '').replace(/\\n/g, '\n');
-admin.initializeApp({
-  credential: admin.cert({
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-    privateKey: pk,
-  })
+const db = new Firestore({
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  credentials: {
+    client_email: process.env.FIREBASE_CLIENT_EMAIL,
+    private_key: pk,
+  },
 });
-const db = getFirestore();
 const projectsCol = db.collection('projects');
 
 const DATA_DIR = path.join(__dirname, 'data');

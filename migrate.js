@@ -1,5 +1,4 @@
-import { initializeApp, cert } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
+import { Firestore } from '@google-cloud/firestore';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -17,16 +16,14 @@ if (fs.existsSync(ENV_PATH)) {
   });
 }
 
-  const pk = process.env.FIREBASE_PRIVATE_KEY?.replace(/^"|"$/g, '').replace(/\\n/g, '\n');
-  initializeApp({
-    credential: cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: pk,
-    })
-  });
-
-const db = getFirestore();
+const pk = process.env.FIREBASE_PRIVATE_KEY?.replace(/^"|"$/g, '').replace(/\\n/g, '\n');
+const db = new Firestore({
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  credentials: {
+    client_email: process.env.FIREBASE_CLIENT_EMAIL,
+    private_key: pk,
+  },
+});
 const projects = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'projects.json'), 'utf8'));
 
 async function migrate() {
