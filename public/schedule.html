@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Granads — Jadwal Foto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+<style>
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;background:var(--border);border-radius:12px;overflow:hidden}
+.cal-head{background:var(--granads-primary);color:white;padding:8px 4px;font-size:11px;font-weight:700;text-align:center;text-transform:uppercase;letter-spacing:.04em}
+.cal-day{background:white;padding:8px 4px;min-height:70px;font-size:12px;cursor:pointer;transition:.1s}
+.cal-day:hover{background:#FFF5F5}
+.cal-day.today{border:2px solid var(--granads-primary)}
+.cal-day.empty{background:#F9FAFB;cursor:default}
+.cal-day .num{font-weight:600;margin-bottom:4px}
+.cal-event{font-size:10px;padding:2px 4px;border-radius:4px;margin-top:2px;background:var(--granads-primary);color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.month-nav{display:flex;align-items:center;gap:12px}
+.month-nav button{background:none;border:1px solid var(--border);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+.month-nav button:hover{background:var(--granads-primary);color:white;border-color:var(--granads-primary)}
+.schedule-list{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+.schedule-item{background:white;border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.schedule-item .info{flex:1;min-width:200px}
+.schedule-item .actions{display:flex;gap:6px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand" style="display:flex;align-items:center;gap:10px">
+    <img src="assets/logo/logo.png" alt="Granads" style="height:32px;width:auto;object-fit:contain" onerror="this.style.display='none'"/>
+  </div>
+  <div class="nav">
+    <a href="schedule.html" class="active">Jadwal</a>
+    <a href="moodboard.html">Moodboard</a>
+  </div>
+</div>
+
+<div class="container">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+    <h1 style="margin:0">Jadwal Foto</h1>
+    <button class="btn gold small" onclick="openModal()">+ Tambah Jadwal</button>
+  </div>
+
+  <div class="card" style="margin-bottom:18px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div class="month-nav">
+        <button onclick="changeMonth(-1)">‹</button>
+        <h3 id="monthTitle" style="margin:0;min-width:180px;text-align:center"></h3>
+        <button onclick="changeMonth(1)">›</button>
+      </div>
+      <button class="btn ghost small" onclick="goToday()">Hari Ini</button>
+    </div>
+    <div class="calendar" id="calendar"></div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin:0 0 12px">Semua Jadwal</h3>
+    <div id="scheduleList" class="schedule-list"></div>
+  </div>
+</div>
+
+<div id="scheduleModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;align-items:center;justify-content:center">
+  <div style="background:white;border-radius:16px;padding:24px;max-width:440px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2)">
+    <h3 style="margin:0 0 16px">Tambah Jadwal Foto</h3>
+    <div style="display:grid;gap:12px">
+      <div>
+        <label>Nama Klien / Acara</label>
+        <input id="schedName" placeholder="cth: Prewedding Rina & Dimas"/>
+      </div>
+      <div>
+        <label>Lokasi</label>
+        <input id="schedLocation" placeholder="cth: Taman Mini Indonesia Indah"/>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <label>Tanggal</label>
+          <input id="schedDate" type="date"/>
+        </div>
+        <div>
+          <label>Jam</label>
+          <input id="schedTime" type="time" value="08:00"/>
+        </div>
+      </div>
+      <div>
+        <label>Catatan</label>
+        <input id="schedNote" placeholder="cth: Bawa 2 set baju"/>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+        <button class="btn ghost small" onclick="closeModal()">Batal</button>
+        <button class="btn small" id="btnSaveSched" onclick="saveSchedule()">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer style="margin-top:auto;border-top:1px solid var(--border);padding:20px 24px;background:white">
+  <div style="max-width:1100px;margin:0 auto;display:flex;justify-content:center;align-items:center;gap:8px">
+    <img src="assets/logo/logo.png" alt="Granads" style="height:24px;width:auto;object-fit:contain"/>
+    <span class="hint">© 2026 <a href="https://wa.me/62882001540684" target="_blank" rel="noopener" style="color:var(--granads-primary);font-weight:700;text-decoration:underline;text-underline-offset:2px">Granads</a></span>
+  </div>
+</footer>
+
+<div id="confirmModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;align-items:center;justify-content:center">
+  <div style="background:white;border-radius:16px;padding:24px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2)">
+    <p id="confirmMsg" style="margin:0 0 20px;font-size:14px;line-height:1.6"></p>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn small ghost" onclick="confirmResolve(false);document.getElementById('confirmModal').style.display='none'">Batal</button>
+      <button class="btn small" style="background:#B91C1C;border-color:#B91C1C" onclick="confirmResolve(true);document.getElementById('confirmModal').style.display='none'">Hapus</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let schedules = JSON.parse(localStorage.getItem('granads_schedules') || '[]');
+let currentDate = new Date();
+let editingId = null;
+let confirmResolve = null;
+
+function showConfirm(msg){
+  return new Promise(resolve=>{
+    confirmResolve = resolve;
+    document.getElementById('confirmMsg').textContent = msg;
+    document.getElementById('confirmModal').style.display = 'flex';
+  });
+}
+
+function save(){ localStorage.setItem('granads_schedules', JSON.stringify(schedules)); }
+
+function renderCalendar(){
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  document.getElementById('monthTitle').textContent = `${months[month]} ${year}`;
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const today = new Date();
+
+  const heads = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+  let html = heads.map(h=>`<div class="cal-head">${h}</div>`).join('');
+
+  for(let i=0;i<firstDay;i++) html += `<div class="cal-day empty"></div>`;
+
+  for(let d=1;d<=daysInMonth;d++){
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = today.getFullYear()===year && today.getMonth()===month && today.getDate()===d;
+    const daySchedules = schedules.filter(s=>s.date===dateStr);
+    const events = daySchedules.map(s=>`<div class="cal-event" onclick="event.stopPropagation();viewSchedule('${s.id}')" title="${s.name}">${s.name}</div>`).join('');
+    html += `<div class="cal-day${isToday?' today':''}" onclick="openModal('${dateStr}')">
+      <div class="num">${d}</div>
+      ${events}
+    </div>`;
+  }
+  document.getElementById('calendar').innerHTML = html;
+}
+
+function renderList(){
+  const sorted = [...schedules].sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  const el = document.getElementById('scheduleList');
+  if(sorted.length===0){
+    el.innerHTML = `<div class="hint" style="text-align:center;padding:20px">Belum ada jadwal.</div>`;
+    return;
+  }
+  const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+  el.innerHTML = sorted.map(s=>{
+    const d = new Date(s.date+'T'+(s.time||'00:00'));
+    const dateStr = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+    return `<div class="schedule-item">
+      <div class="info">
+        <div style="font-weight:700;font-size:14px">${s.name}</div>
+        <div class="hint" style="font-size:12px">${dateStr} • ${s.time||'00:00'}${s.location?' • '+s.location:''}</div>
+        ${s.note?`<div class="hint" style="font-size:11px;margin-top:2px">${s.note}</div>`:''}
+      </div>
+      <div class="actions">
+        <button class="btn small ghost" onclick="addToCal('${s.id}')">Google Calendar</button>
+        <button class="btn small ghost" onclick="editSchedule('${s.id}')">Edit</button>
+        <button class="btn small ghost" style="border-color:#FECACA;color:#B91C1C" onclick="deleteSchedule('${s.id}')">Hapus</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function changeMonth(dir){
+  currentDate.setMonth(currentDate.getMonth()+dir);
+  renderCalendar();
+}
+function goToday(){ currentDate=new Date(); renderCalendar(); }
+
+function openModal(dateStr){
+  editingId = null;
+  document.getElementById('schedName').value='';
+  document.getElementById('schedLocation').value='';
+  document.getElementById('schedDate').value=dateStr||'';
+  document.getElementById('schedTime').value='08:00';
+  document.getElementById('schedNote').value='';
+  document.getElementById('btnSaveSched').textContent='Simpan';
+  document.getElementById('scheduleModal').style.display='flex';
+}
+function closeModal(){ document.getElementById('scheduleModal').style.display='none'; }
+
+function saveSchedule(){
+  const name = document.getElementById('schedName').value.trim();
+  const location = document.getElementById('schedLocation').value.trim();
+  const date = document.getElementById('schedDate').value;
+  const time = document.getElementById('schedTime').value;
+  const note = document.getElementById('schedNote').value.trim();
+  if(!name) return alert('Nama wajib diisi');
+  if(!date) return alert('Tanggal wajib diisi');
+
+  if(editingId){
+    const s = schedules.find(x=>x.id===editingId);
+    if(s){ s.name=name; s.location=location; s.date=date; s.time=time; s.note=note; }
+    // sync to project
+    if(s.projectId) syncProject(s.projectId, name, location, date, time, note);
+  } else {
+    const id = Date.now().toString(36);
+    schedules.push({ id, name, location, date, time, note });
+    // sync to project
+    syncProject(id, name, location, date, time, note);
+  }
+  save();
+  renderCalendar();
+  renderList();
+  closeModal();
+}
+
+function syncProject(id, name, location, date, time, note){
+  let projects = JSON.parse(localStorage.getItem('granads_moodboards') || '[]');
+  const existing = projects.find(p=>p.id===id);
+  if(existing){
+    existing.name=name; existing.location=location; existing.date=date; existing.time=time; existing.note=note;
+  } else {
+    projects.push({ id, name, date, time, location, note, items: [], deliveryLink: null, deliveryFolderId: null, createdAt: new Date().toISOString() });
+  }
+  localStorage.setItem('granads_moodboards', JSON.stringify(projects));
+}
+
+function editSchedule(id){
+  const s = schedules.find(x=>x.id===id);
+  if(!s) return;
+  editingId = id;
+  document.getElementById('schedName').value=s.name;
+  document.getElementById('schedLocation').value=s.location||'';
+  document.getElementById('schedDate').value=s.date;
+  document.getElementById('schedTime').value=s.time||'08:00';
+  document.getElementById('schedNote').value=s.note||'';
+  document.getElementById('btnSaveSched').textContent='Update';
+  document.getElementById('scheduleModal').style.display='flex';
+}
+
+function viewSchedule(id){
+  const s = schedules.find(x=>x.id===id);
+  if(!s) return;
+  editSchedule(id);
+}
+
+async function deleteSchedule(id){
+  const ok = await showConfirm('Hapus jadwal ini?');
+  if(!ok) return;
+  schedules = schedules.filter(x=>x.id!==id);
+  save();
+  renderCalendar();
+  renderList();
+}
+
+function addToCal(id){
+  const s = schedules.find(x=>x.id===id);
+  if(!s) return;
+  const start = (s.date+'T'+(s.time||'08:00')).replace(/[-:]/g,'').replace('T','T');
+  const d = new Date(s.date+'T'+(s.time||'08:00'));
+  d.setHours(d.getHours()+2);
+  const end = d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
+  const details = [s.location, s.note].filter(Boolean).join(' - ');
+  const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(s.name)}&dates=${start}/${end}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(s.location||'')}`;
+  window.open(url, '_blank');
+}
+
+renderCalendar();
+renderList();
+</script>
+</body>
+</html>

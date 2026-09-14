@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Granads — Project</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand" style="display:flex;align-items:center;gap:10px">
+    <img src="assets/logo/logo.png" alt="Granads" style="height:32px;width:auto;object-fit:contain" onerror="this.style.display='none'"/>
+  </div>
+  <div class="nav">
+    <a href="schedule.html">Jadwal</a>
+    <a href="moodboard.html" class="active">Moodboard</a>
+  </div>
+</div>
+
+<div class="container" style="max-width:100%!important;width:100%!important;margin:0!important;padding:24px 40px">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+    <h1 style="margin:0">Project</h1>
+    <button class="btn gold small" onclick="openModal()">+ Tambah Project</button>
+  </div>
+  <div id="projectList" style="display:flex;flex-direction:column;gap:8px"></div>
+</div>
+
+<div id="projectModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;align-items:center;justify-content:center">
+  <div style="background:white;border-radius:16px;padding:24px;max-width:440px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2)">
+    <h3 id="projectModalTitle" style="margin:0 0 16px">Tambah Project</h3>
+    <div style="display:grid;gap:12px">
+      <div>
+        <label>Nama Klien / Acara</label>
+        <input id="mbName" placeholder="cth: Prewedding Rina & Dimas"/>
+      </div>
+      <div>
+        <label>Lokasi</label>
+        <input id="mbLocation" placeholder="cth: Taman Mini Indonesia Indah"/>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <label>Tanggal</label>
+          <input id="mbDate" type="date"/>
+        </div>
+        <div>
+          <label>Jam</label>
+          <input id="mbTime" type="time" value="08:00"/>
+        </div>
+      </div>
+      <div>
+        <label>Catatan</label>
+        <input id="mbNote" placeholder="cth: Bawa 2 set baju"/>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+        <button class="btn ghost small" onclick="closeModal()">Batal</button>
+        <button class="btn small" id="btnSaveProject" onclick="saveProject()">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="confirmModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;align-items:center;justify-content:center">
+  <div style="background:white;border-radius:16px;padding:24px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2)">
+    <p id="confirmMsg" style="margin:0 0 20px;font-size:14px;line-height:1.6"></p>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn small ghost" onclick="confirmResolve(false);document.getElementById('confirmModal').style.display='none'">Batal</button>
+      <button class="btn small" style="background:#B91C1C;border-color:#B91C1C" onclick="confirmResolve(true);document.getElementById('confirmModal').style.display='none'">Hapus</button>
+    </div>
+  </div>
+</div>
+
+<footer style="margin-top:auto;border-top:1px solid var(--border);padding:20px 24px;background:white">
+  <div style="max-width:1100px;margin:0 auto;display:flex;justify-content:center;align-items:center;gap:8px">
+    <img src="assets/logo/logo.png" alt="Granads" style="height:24px;width:auto;object-fit:contain"/>
+    <span class="hint">© 2026 <a href="https://wa.me/62882001540684" target="_blank" rel="noopener" style="color:var(--granads-primary);font-weight:700;text-decoration:underline;text-underline-offset:2px">Granads</a></span>
+  </div>
+</footer>
+
+<div id="deliveryModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;align-items:center;justify-content:center">
+  <div style="background:white;border-radius:16px;padding:24px;max-width:480px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2)">
+    <h3 style="margin:0 0 6px">Delivery</h3>
+    <p class="hint" style="margin:0 0 16px;font-size:12px">Paste link folder Drive yang berisi foto hasil edit. Client bisa download dari sini.</p>
+    <div style="display:grid;gap:12px">
+      <div>
+        <label>Link Folder Drive</label>
+        <input id="deliveryLink" placeholder="https://drive.google.com/drive/folders/..."/>
+      </div>
+      <div id="deliveryResult" style="display:none">
+        <label>Link untuk Client</label>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input id="deliveryUrl" readonly style="flex:1;font-size:12px"/>
+          <button class="btn small ghost" onclick="navigator.clipboard.writeText(document.getElementById('deliveryUrl').value);alert('Copied!')">Salin</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+        <button class="btn ghost small" onclick="document.getElementById('deliveryModal').style.display='none'">Tutup</button>
+        <button class="btn small" onclick="saveDelivery()">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let projects = JSON.parse(localStorage.getItem('granads_moodboards') || '[]');
+let schedules = JSON.parse(localStorage.getItem('granads_schedules') || '[]');
+let confirmResolve = null;
+
+function showConfirm(msg){
+  return new Promise(resolve=>{
+    confirmResolve = resolve;
+    document.getElementById('confirmMsg').textContent = msg;
+    document.getElementById('confirmModal').style.display = 'flex';
+  });
+}
+
+function save(){ localStorage.setItem('granads_moodboards', JSON.stringify(projects)); }
+
+function renderList(){
+  const all = [...projects];
+  const el = document.getElementById('projectList');
+  if(all.length===0){
+    el.innerHTML = `<div class="hint" style="text-align:center;padding:40px">Belum ada project. Klik "+ Tambah Project" untuk mulai.</div>`;
+    return;
+  }
+  const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+  el.innerHTML = all.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||'')).map(p=>{
+    const d = p.date ? new Date(p.date+'T'+(p.time||'00:00')) : null;
+    const dateStr = d ? `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}` : '-';
+    const timeStr = p.time || '';
+    return `<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding:18px 24px">
+      <div style="flex:1;min-width:200px">
+        <div style="font-weight:700;font-size:15px">${p.name}</div>
+        <div class="hint" style="font-size:12px">${dateStr}${timeStr?' \u2022 '+timeStr:''}${p.location?' \u2022 '+p.location:''}</div>
+        ${p.note?`<div class="hint" style="font-size:11px;margin-top:2px">${p.note}</div>`:''}
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <a href="moodboard-work.html?id=${p.id}" class="btn small ghost" style="text-decoration:none">Moodboard</a>
+        <button class="btn small ghost" onclick="openDeliveryFull('${p.id}')">Delivery Full</button>
+        <button class="btn small ghost" onclick="openDelivery('${p.id}')">Delivery Edited</button>
+        <button class="btn small ghost" onclick="editProject('${p.id}')">Edit</button>
+        <button class="btn small ghost" style="border-color:#FECACA;color:#B91C1C" onclick="deleteProject('${p.id}')">Hapus</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+let editingId = null;
+
+function openModal(dateStr){
+  editingId = null;
+  document.getElementById('projectModalTitle').textContent = 'Tambah Project';
+  document.getElementById('mbName').value='';
+  document.getElementById('mbLocation').value='';
+  document.getElementById('mbDate').value=dateStr||'';
+  document.getElementById('mbTime').value='08:00';
+  document.getElementById('mbNote').value='';
+  document.getElementById('projectModal').style.display='flex';
+}
+function closeModal(){ document.getElementById('projectModal').style.display='none'; }
+
+function saveProject(){
+  const name = document.getElementById('mbName').value.trim();
+  const location = document.getElementById('mbLocation').value.trim();
+  const date = document.getElementById('mbDate').value;
+  const time = document.getElementById('mbTime').value;
+  const note = document.getElementById('mbNote').value.trim();
+  if(!name) return alert('Nama wajib diisi');
+  if(!date) return alert('Tanggal wajib diisi');
+
+  if(editingId){
+    const p = projects.find(x=>x.id===editingId);
+    if(p){ p.name=name; p.location=location; p.date=date; p.time=time; p.note=note; }
+    syncSchedule(editingId, name, location, date, time, note);
+  } else {
+    const id = Date.now().toString(36);
+    projects.push({ id, name, date, time, location, note, items: [], deliveryLink: null, deliveryFolderId: null, createdAt: new Date().toISOString() });
+    syncSchedule(id, name, location, date, time, note);
+  }
+  save();
+  renderList();
+  closeModal();
+}
+
+function syncSchedule(id, name, location, date, time, note){
+  let schedules = JSON.parse(localStorage.getItem('granads_schedules') || '[]');
+  const existing = schedules.find(s=>s.projectId===id);
+  if(existing){
+    existing.name=name; existing.location=location; existing.date=date; existing.time=time; existing.note=note;
+  } else {
+    schedules.push({ id: Date.now().toString(36), projectId:id, name, location, date, time, note });
+  }
+  localStorage.setItem('granads_schedules', JSON.stringify(schedules));
+}
+
+function editProject(id){
+  const p = projects.find(x=>x.id===id);
+  if(!p) return;
+  editingId = id;
+  document.getElementById('projectModalTitle').textContent = 'Edit Project';
+  document.getElementById('mbName').value=p.name;
+  document.getElementById('mbLocation').value=p.location||'';
+  document.getElementById('mbDate').value=p.date||'';
+  document.getElementById('mbTime').value=p.time||'08:00';
+  document.getElementById('mbNote').value=p.note||'';
+  document.getElementById('projectModal').style.display='flex';
+}
+
+async function deleteProject(id){
+  const ok = await showConfirm('Hapus project ini?');
+  if(!ok) return;
+  projects = projects.filter(x=>x.id!==id);
+  save();
+  let schedules = JSON.parse(localStorage.getItem('granads_schedules') || '[]');
+  schedules = schedules.filter(s=>s.projectId!==id);
+  localStorage.setItem('granads_schedules', JSON.stringify(schedules));
+  renderList();
+}
+
+let deliveryProjectId = null;
+
+function openDeliveryFull(id){
+  const p = projects.find(x=>x.id===id);
+  const name = p ? p.name : '';
+  window.open('owner.html?name='+encodeURIComponent(name), '_blank');
+}
+
+function openDelivery(id){
+  deliveryProjectId = id;
+  const p = projects.find(x=>x.id===id);
+  document.getElementById('deliveryLink').value = p?.deliveryLink || '';
+  if(p?.deliveryFolderId){
+    document.getElementById('deliveryResult').style.display='block';
+    document.getElementById('deliveryUrl').value = `${location.origin}/download.html?id=${id}`;
+  } else {
+    document.getElementById('deliveryResult').style.display='none';
+  }
+  document.getElementById('deliveryModal').style.display='flex';
+}
+
+function extractDriveFolderId(link){
+  if(!link) return null;
+  const m1 = link.match(/\/folders\/([a-zA-Z0-9-_]+)/);
+  if(m1) return m1[1];
+  const m2 = link.match(/[?&]id=([a-zA-Z0-9-_]+)/);
+  if(m2) return m2[1];
+  if(/^[a-zA-Z0-9-_]{20,}$/.test(link.trim())) return link.trim();
+  return null;
+}
+
+function saveDelivery(){
+  const link = document.getElementById('deliveryLink').value.trim();
+  const folderId = extractDriveFolderId(link);
+  if(!folderId) return alert('Link tidak valid. Paste link folder Drive.');
+  const p = projects.find(x=>x.id===deliveryProjectId);
+  if(!p) return;
+  p.deliveryLink = link;
+  p.deliveryFolderId = folderId;
+  save();
+  document.getElementById('deliveryResult').style.display='block';
+  document.getElementById('deliveryUrl').value = `${location.origin}/download.html?id=${deliveryProjectId}`;
+  renderList();
+}
+
+function copyDeliveryLink(id){
+  const url = `${location.origin}/download.html?id=${id}`;
+  navigator.clipboard.writeText(url);
+  alert('Link delivery disalin!');
+}
+
+renderList();
+</script>
+</body>
+</html>
