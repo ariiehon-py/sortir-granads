@@ -450,7 +450,7 @@ app.get('/api/public/schedules', async (req, res) => {
 
 // --- Domain routing: granads.k3unair.com → portfolio ---
 app.get('/', (req, res) => {
-  const host = (req.get('host') || '').split(':')[0];
+  const host = (req.get('x-forwarded-host') || req.get('host') || '').split(':')[0];
   if(host === 'granads.k3unair.com'){
     return res.sendFile(path.join(__dirname, 'public', 'portfolio.html'));
   }
