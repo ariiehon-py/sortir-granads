@@ -217,6 +217,7 @@ function renderList(){
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <a href="moodboard-work.html?id=${p.id}" class="btn small ghost" style="text-decoration:none">Moodboard</a>
         <button class="btn small ghost" onclick="openDeliveryFull('${p.id}')">Delivery Full</button>
+        ${p.deliveryProjectId ? `<button class="btn small ghost" onclick="fetchShootDrive('${p.id}','${p.deliveryProjectId}')">Fetch</button>` : ''}
         <button class="btn small ghost" onclick="openDelivery('${p.id}')">Delivery Edited</button>
         <button class="btn small ghost" onclick="editProject('${p.id}')">Edit</button>
         <button class="btn small ghost" style="border-color:#FECACA;color:#B91C1C" onclick="deleteProject('${p.id}')">Hapus</button>
@@ -327,8 +328,11 @@ async function createFullProject(){
     const r = await fetch('/api/projects', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({clientName: p.name, driveLink, maxSelection, deadline})});
     const j = await r.json();
     if(!r.ok) throw new Error(j.error);
+    p.deliveryProjectId = j.project.id;
+    await api(`/api/shoots/${deliveryFullProjectId}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({deliveryProjectId: j.project.id})});
     document.getElementById('dfResult').style.display='block';
     document.getElementById('dfUrl').value = j.fullClientLink;
+    renderList();
   }catch(e){ alert(e.message) }
   finally{ btn.disabled=false; btn.textContent='Buat Link' }
 }
@@ -368,6 +372,18 @@ async function saveDelivery(){
   document.getElementById('deliveryResult').style.display='block';
   document.getElementById('deliveryUrl').value = `${location.origin}/download.html?id=${deliveryProjectId}`;
   renderList();
+}
+
+async function fetchShootDrive(shootId, projectId){
+  const p = projects.find(x=>x.id===shootId);
+  let link = p?.deliveryLink || p?.driveLink;
+  if(!link) link = prompt('Paste link Drive folder:');
+  if(!link) return;
+  try{
+    const res = await api(`/api/projects/${projectId}/fetch-drive`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({driveLink:link})});
+    if(res.ok) alert(`Fetch berhasil (${res.via}): ${res.count} foto`);
+    else alert(res.message);
+  }catch(e){ alert(e.message) }
 }
 
 function copyDeliveryLink(id){
