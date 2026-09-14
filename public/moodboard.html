@@ -149,8 +149,8 @@
 </div>
 
 <script>
-let projects = JSON.parse(localStorage.getItem('granads_moodboards') || '[]');
-let schedules = JSON.parse(localStorage.getItem('granads_schedules') || '[]');
+let projects = [];
+let schedules = [];
 let confirmResolve = null;
 
 async function api(path, opts){
@@ -159,6 +159,12 @@ async function api(path, opts){
   if(!r.ok) throw new Error(j.error||j.message||'Error');
   return j;
 }
+
+async function init(){
+  [projects, schedules] = await Promise.all([api('/api/shoots'), api('/api/schedules')]);
+  renderList();
+}
+init();
 
 async function checkAuth(){
   try{
@@ -188,7 +194,7 @@ function showConfirm(msg){
   });
 }
 
-function save(){ localStorage.setItem('granads_moodboards', JSON.stringify(projects)); }
+function save(){ /* no-op: data saved via API */ }
 
 function renderList(){
   const all = [...projects];
@@ -233,7 +239,7 @@ function openModal(dateStr){
 }
 function closeModal(){ document.getElementById('projectModal').style.display='none'; }
 
-function saveProject(){
+async function saveProject(){
   const name = document.getElementById('mbName').value.trim();
   const location = document.getElementById('mbLocation').value.trim();
   const date = document.getElementById('mbDate').value;
@@ -245,26 +251,38 @@ function saveProject(){
   if(editingId){
     const p = projects.find(x=>x.id===editingId);
     if(p){ p.name=name; p.location=location; p.date=date; p.time=time; p.note=note; }
-    syncSchedule(editingId, name, location, date, time, note);
+    await api(`/api/shoots/${editingId}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(p)});
+    if(p?.scheduleId){
+      await api(`/api/schedules/${p.scheduleId}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name, location, date, time, note, projectId:editingId})});
+    }
   } else {
     const id = Date.now().toString(36);
-    projects.push({ id, name, date, time, location, note, items: [], deliveryLink: null, deliveryFolderId: null, createdAt: new Date().toISOString() });
-    syncSchedule(id, name, location, date, time, note);
+    const shoot = { id, name, date, time, location, note, items: [], deliveryLink: null, deliveryFolderId: null, createdAt: new Date().toISOString() };
+    const saved = await api('/api/shoots', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(shoot)});
+    shoot.id = saved.id;
+    projects.push(shoot);
+    const sched = { name, location, date, time, note, projectId: saved.id };
+    const savedSched = await api('/api/schedules', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(sched)});
+    sched.id = savedSched.id;
+    schedules.push(sched);
+    shoot.scheduleId = savedSched.id;
+    await api(`/api/shoots/${saved.id}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({scheduleId:savedSched.id})});
   }
-  save();
   renderList();
   closeModal();
 }
 
-function syncSchedule(id, name, location, date, time, note){
-  let schedules = JSON.parse(localStorage.getItem('granads_schedules') || '[]');
-  const existing = schedules.find(s=>s.projectId===id);
-  if(existing){
-    existing.name=name; existing.location=location; existing.date=date; existing.time=time; existing.note=note;
-  } else {
-    schedules.push({ id: Date.now().toString(36), projectId:id, name, location, date, time, note });
+async function deleteProject(id){
+  const ok = await showConfirm('Hapus project ini?');
+  if(!ok) return;
+  projects = projects.filter(x=>x.id!==id);
+  await api(`/api/shoots/${id}`, {method:'DELETE'});
+  const sched = schedules.find(s=>s.projectId===id);
+  if(sched){
+    schedules = schedules.filter(s=>s.projectId!==id);
+    await api(`/api/schedules/${sched.id}`, {method:'DELETE'});
   }
-  localStorage.setItem('granads_schedules', JSON.stringify(schedules));
+  renderList();
 }
 
 function editProject(id){
@@ -278,17 +296,6 @@ function editProject(id){
   document.getElementById('mbTime').value=p.time||'08:00';
   document.getElementById('mbNote').value=p.note||'';
   document.getElementById('projectModal').style.display='flex';
-}
-
-async function deleteProject(id){
-  const ok = await showConfirm('Hapus project ini?');
-  if(!ok) return;
-  projects = projects.filter(x=>x.id!==id);
-  save();
-  let schedules = JSON.parse(localStorage.getItem('granads_schedules') || '[]');
-  schedules = schedules.filter(s=>s.projectId!==id);
-  localStorage.setItem('granads_schedules', JSON.stringify(schedules));
-  renderList();
 }
 
 let deliveryProjectId = null;
@@ -349,7 +356,7 @@ function extractDriveFolderId(link){
   return null;
 }
 
-function saveDelivery(){
+async function saveDelivery(){
   const link = document.getElementById('deliveryLink').value.trim();
   const folderId = extractDriveFolderId(link);
   if(!folderId) return alert('Link tidak valid. Paste link folder Drive.');
@@ -357,7 +364,7 @@ function saveDelivery(){
   if(!p) return;
   p.deliveryLink = link;
   p.deliveryFolderId = folderId;
-  save();
+  await api(`/api/shoots/${deliveryProjectId}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({deliveryLink:link, deliveryFolderId:folderId})});
   document.getElementById('deliveryResult').style.display='block';
   document.getElementById('deliveryUrl').value = `${location.origin}/download.html?id=${deliveryProjectId}`;
   renderList();
@@ -368,8 +375,6 @@ function copyDeliveryLink(id){
   navigator.clipboard.writeText(url);
   alert('Link delivery disalin!');
 }
-
-renderList();
 </script>
 </body>
 </html>

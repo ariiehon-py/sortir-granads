@@ -40,6 +40,8 @@ const db = new Firestore({
   },
 });
 const projectsCol = db.collection('projects');
+const shootsCol = db.collection('shoots');
+const schedulesCol = db.collection('schedules');
 
 const DATA_DIR = path.join(__dirname, 'data');
 const UPLOAD_DIR = path.join(__dirname, 'uploads');
@@ -438,6 +440,54 @@ app.delete('/api/projects/:id', async (req, res) => {
 });
 
 app.get('/health', (req,res)=> res.json({ ok:true, uptime: process.uptime(), ts: new Date().toISOString() }));
+
+// --- SHOOTS API (Firestore) ---
+app.get('/api/shoots', async (req, res) => {
+  const snap = await shootsCol.orderBy('createdAt', 'desc').get();
+  const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  res.json(items);
+});
+app.post('/api/shoots', async (req, res) => {
+  const data = req.body;
+  data.createdAt = new Date().toISOString();
+  const ref = await shootsCol.add(data);
+  res.json({ id: ref.id, ...data });
+});
+app.put('/api/shoots/:id', async (req, res) => {
+  const { id } = req.params;
+  const data = req.body;
+  delete data.id;
+  await shootsCol.doc(id).set(data, { merge: true });
+  res.json({ ok: true, id });
+});
+app.delete('/api/shoots/:id', async (req, res) => {
+  await shootsCol.doc(req.params.id).delete();
+  res.json({ ok: true });
+});
+
+// --- SCHEDULES API (Firestore) ---
+app.get('/api/schedules', async (req, res) => {
+  const snap = await schedulesCol.orderBy('date', 'asc').get();
+  const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  res.json(items);
+});
+app.post('/api/schedules', async (req, res) => {
+  const data = req.body;
+  data.createdAt = new Date().toISOString();
+  const ref = await schedulesCol.add(data);
+  res.json({ id: ref.id, ...data });
+});
+app.put('/api/schedules/:id', async (req, res) => {
+  const { id } = req.params;
+  const data = req.body;
+  delete data.id;
+  await schedulesCol.doc(id).set(data, { merge: true });
+  res.json({ ok: true, id });
+});
+app.delete('/api/schedules/:id', async (req, res) => {
+  await schedulesCol.doc(req.params.id).delete();
+  res.json({ ok: true });
+});
 app.use('/uploads', express.static(UPLOAD_DIR));
 app.use((req, res, next) => {
   if(req.path.endsWith('.html') || req.path.endsWith('.css') || req.path.endsWith('.js')){

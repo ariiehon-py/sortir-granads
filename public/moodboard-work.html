@@ -73,9 +73,17 @@ body{overflow:hidden;background:#2A2A2E;font-family:'Space Grotesk',sans-serif}
 <script>
 const params = new URLSearchParams(location.search);
 const projectId = params.get('id');
-let boards = JSON.parse(localStorage.getItem('granads_moodboards') || '[]');
-let project = boards.find(p=>p.id===projectId);
-let items = project?.items || [];
+let boards = [];
+let project = null;
+let items = [];
+
+async function loadBoard(){
+  boards = await fetch('/api/shoots').then(r=>r.json());
+  project = boards.find(p=>p.id===projectId);
+  items = project?.items || [];
+  init();
+}
+loadBoard();
 
 let zoom = 1, panX = 0, panY = 0;
 let tool = 'select';
@@ -366,14 +374,12 @@ function zoomIn(){ zoom = Math.min(5, zoom+0.2); updateTransform(); }
 function zoomOut(){ zoom = Math.max(0.1, zoom-0.2); updateTransform(); }
 function zoomFit(){ zoom=1; panX=0; panY=0; updateTransform(); }
 
-function saveBoard(){
+async function saveBoard(){
   if(!project) return;
   project.items = items;
-  localStorage.setItem('granads_moodboards', JSON.stringify(boards));
+  await fetch(`/api/shoots/${projectId}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({items})});
   alert('Tersimpan!');
 }
-
-init();
 </script>
 </body>
 </html>

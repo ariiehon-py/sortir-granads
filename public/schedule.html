@@ -131,7 +131,7 @@
 </div>
 
 <script>
-let schedules = JSON.parse(localStorage.getItem('granads_schedules') || '[]');
+let schedules = [];
 let currentDate = new Date();
 let editingId = null;
 let confirmResolve = null;
@@ -142,6 +142,13 @@ async function api(path, opts){
   if(!r.ok) throw new Error(j.error||j.message||'Error');
   return j;
 }
+
+async function init(){
+  schedules = await api('/api/schedules');
+  renderCalendar();
+  renderList();
+}
+init();
 
 async function checkAuth(){
   try{
@@ -171,7 +178,7 @@ function showConfirm(msg){
   });
 }
 
-function save(){ localStorage.setItem('granads_schedules', JSON.stringify(schedules)); }
+function save(){ /* no-op: saved via API */ }
 
 function renderCalendar(){
   const year = currentDate.getFullYear();
@@ -245,7 +252,7 @@ function openModal(dateStr){
 }
 function closeModal(){ document.getElementById('scheduleModal').style.display='none'; }
 
-function saveSchedule(){
+async function saveSchedule(){
   const name = document.getElementById('schedName').value.trim();
   const location = document.getElementById('schedLocation').value.trim();
   const date = document.getElementById('schedDate').value;
@@ -257,29 +264,38 @@ function saveSchedule(){
   if(editingId){
     const s = schedules.find(x=>x.id===editingId);
     if(s){ s.name=name; s.location=location; s.date=date; s.time=time; s.note=note; }
-    // sync to project
-    if(s.projectId) syncProject(s.projectId, name, location, date, time, note);
+    await api(`/api/schedules/${editingId}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(s)});
+    if(s.projectId){
+      await api(`/api/shoots/${s.projectId}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name, location, date, time, note})});
+    }
   } else {
     const id = Date.now().toString(36);
-    schedules.push({ id, name, location, date, time, note });
-    // sync to project
-    syncProject(id, name, location, date, time, note);
+    const sched = { id, name, location, date, time, note };
+    const saved = await api('/api/schedules', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(sched)});
+    sched.id = saved.id;
+    schedules.push(sched);
+    const shoot = { name, date, time, location, note, items: [], deliveryLink: null, deliveryFolderId: null, createdAt: new Date().toISOString() };
+    const savedShoot = await api('/api/shoots', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(shoot)});
+    shoot.id = savedShoot.id;
+    await api(`/api/schedules/${saved.id}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({projectId: savedShoot.id})});
+    sched.projectId = savedShoot.id;
   }
-  save();
   renderCalendar();
   renderList();
   closeModal();
 }
 
-function syncProject(id, name, location, date, time, note){
-  let projects = JSON.parse(localStorage.getItem('granads_moodboards') || '[]');
-  const existing = projects.find(p=>p.id===id);
-  if(existing){
-    existing.name=name; existing.location=location; existing.date=date; existing.time=time; existing.note=note;
-  } else {
-    projects.push({ id, name, date, time, location, note, items: [], deliveryLink: null, deliveryFolderId: null, createdAt: new Date().toISOString() });
+async function deleteSchedule(id){
+  const ok = await showConfirm('Hapus jadwal ini?');
+  if(!ok) return;
+  const s = schedules.find(x=>x.id===id);
+  schedules = schedules.filter(x=>x.id!==id);
+  await api(`/api/schedules/${id}`, {method:'DELETE'});
+  if(s?.projectId){
+    await api(`/api/shoots/${s.projectId}`, {method:'DELETE'});
   }
-  localStorage.setItem('granads_moodboards', JSON.stringify(projects));
+  renderCalendar();
+  renderList();
 }
 
 function editSchedule(id){
@@ -301,15 +317,6 @@ function viewSchedule(id){
   editSchedule(id);
 }
 
-async function deleteSchedule(id){
-  const ok = await showConfirm('Hapus jadwal ini?');
-  if(!ok) return;
-  schedules = schedules.filter(x=>x.id!==id);
-  save();
-  renderCalendar();
-  renderList();
-}
-
 function addToCal(id){
   const s = schedules.find(x=>x.id===id);
   if(!s) return;
@@ -321,9 +328,6 @@ function addToCal(id){
   const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(s.name)}&dates=${start}/${end}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(s.location||'')}`;
   window.open(url, '_blank');
 }
-
-renderCalendar();
-renderList();
 </script>
 </body>
 </html>

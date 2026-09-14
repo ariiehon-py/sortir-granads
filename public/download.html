@@ -87,27 +87,33 @@
 <script>
 const params = new URLSearchParams(location.search);
 const projectId = params.get('id');
-const boards = JSON.parse(localStorage.getItem('granads_moodboards') || '[]');
-const project = boards.find(p=>p.id===projectId);
 
-if(!project || !project.deliveryFolderId){
-  document.getElementById('loading').innerHTML = '<div class="card" style="max-width:500px;margin:0 auto;text-align:center;padding:40px"><h3>Link tidak valid</h3><p class="hint">Project tidak ditemukan atau belum ada foto yang diupload.</p></div>';
-} else {
-  document.getElementById('loading').style.display='none';
-  document.getElementById('app').style.display='block';
-  document.getElementById('projectName').textContent = project.name;
-  const d = project.date ? new Date(project.date) : null;
-  const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-  const dateStr = d ? d.getDate()+' '+months[d.getMonth()]+' '+d.getFullYear() : '';
-  document.getElementById('projectInfo').textContent = [dateStr, project.location].filter(Boolean).join(' \u2022 ');
-  document.getElementById('downloadBtn').href = 'https://drive.google.com/drive/folders/'+project.deliveryFolderId;
-
-  if(project.drivePhotos && project.drivePhotos.length > 0){
-    renderGallery(project.drivePhotos);
-  } else {
-    fetchPhotos(project.deliveryFolderId);
+async function init(){
+  try {
+    const shoots = await fetch('/api/shoots').then(r=>r.json());
+    const project = shoots.find(p=>p.id===projectId);
+    if(!project || !project.deliveryFolderId){
+      document.getElementById('loading').innerHTML = '<div class="card" style="max-width:500px;margin:0 auto;text-align:center;padding:40px"><h3>Link tidak valid</h3><p class="hint">Project tidak ditemukan atau belum ada foto yang diupload.</p></div>';
+      return;
+    }
+    document.getElementById('loading').style.display='none';
+    document.getElementById('app').style.display='block';
+    document.getElementById('projectName').textContent = project.name;
+    const d = project.date ? new Date(project.date) : null;
+    const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+    const dateStr = d ? d.getDate()+' '+months[d.getMonth()]+' '+d.getFullYear() : '';
+    document.getElementById('projectInfo').textContent = [dateStr, project.location].filter(Boolean).join(' \u2022 ');
+    document.getElementById('downloadBtn').href = 'https://drive.google.com/drive/folders/'+project.deliveryFolderId;
+    if(project.drivePhotos && project.drivePhotos.length > 0){
+      renderGallery(project.drivePhotos);
+    } else {
+      fetchPhotos(project.deliveryFolderId);
+    }
+  } catch(e){
+    document.getElementById('loading').innerHTML = '<div class="card" style="max-width:500px;margin:0 auto;text-align:center;padding:40px"><h3>Link tidak valid</h3><p class="hint">Gagal memuat data.</p></div>';
   }
 }
+init();
 
 function fetchPhotos(folderId){
   fetch('/api/folder/'+folderId+'/photos')
