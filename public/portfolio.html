@@ -41,27 +41,27 @@ body{background:var(--granads-cream);color:var(--granads-dark);overflow-x:hidden
 .btn-primary{background:var(--granads-primary);color:white}
 .btn-outline{background:transparent;color:var(--granads-primary);border:1.5px solid var(--granads-primary)}
 
-/* SHOWCASE — dark, like reference */
-.showcase{flex:1;background:#0B0B0F;color:white;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;margin-top:14px;border-radius:20px 20px 0 0}
-.showcase::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:56px 56px;mask-image:radial-gradient(ellipse 90% 90% at 50% 40%,black 40%,transparent 100%);pointer-events:none}
-.show-row{position:relative;display:flex;gap:0;align-items:flex-end;overflow-x:auto;padding:26px 0 0;scroll-snap-type:x mandatory;scrollbar-width:none}
+/* SHOWCASE — terang, 3 foto numpuk, bisa digeser */
+.showcase{flex:1;position:relative;display:flex;flex-direction:column;justify-content:flex-end;margin-top:6px}
+.show-viewport{position:relative;overflow:hidden;padding:18px 0 4px}
+.show-row{display:flex;align-items:center;overflow-x:auto;padding:10px 8vw 16px;scroll-snap-type:x mandatory;scrollbar-width:none;gap:0}
 .show-row::-webkit-scrollbar{display:none}
-.show-card{flex:0 0 auto;scroll-snap-align:center;border-radius:6px;overflow:hidden;position:relative;box-shadow:0 18px 50px rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.08)}
-.show-card:nth-child(1){width:min(300px,62vw);height:300px;margin-left:6vw;z-index:1}
-.show-card:nth-child(2){width:min(200px,44vw);height:360px;margin-left:-40px;z-index:2}
-.show-card:nth-child(3){width:min(200px,44vw);height:330px;margin-left:-30px;z-index:3}
-.show-card:nth-child(4){width:min(230px,52vw);height:350px;margin-left:-30px;z-index:4}
-.show-card:nth-child(5){width:min(230px,52vw);height:320px;margin-left:-30px;margin-right:6vw;z-index:5}
-.show-card .ph{width:100%;height:100%;display:flex;align-items:flex-end;padding:14px;font-weight:800;font-size:22px;line-height:1.1;color:rgba(255,255,255,.92)}
+.show-card{flex:0 0 clamp(200px,30vw,300px);scroll-snap-align:center;border-radius:10px;overflow:hidden;position:relative;box-shadow:0 16px 40px rgba(0,0,0,.18);border:1px solid rgba(0,0,0,.06);transition:transform .25s}
+.show-card + .show-card{margin-left:-56px}
+.show-card:nth-child(odd){transform:rotate(-2deg) translateY(8px)}
+.show-card:nth-child(even){transform:rotate(1.5deg)}
+.show-card:hover{transform:rotate(0) translateY(-4px) scale(1.02);z-index:10}
+.show-card .ph{width:100%;height:300px;display:flex;align-items:flex-end;padding:14px;font-weight:800;font-size:22px;line-height:1.1;color:rgba(255,255,255,.92)}
 .show-card small{display:block;font-size:11px;font-weight:500;opacity:.85;margin-top:4px}
-.show-foot{position:relative;display:flex;justify-content:space-between;align-items:center;padding:14px 26px 18px;font-size:12px;color:rgba(255,255,255,.75)}
-.show-foot a{color:white;text-decoration:underline;text-underline-offset:4px;font-size:12px}
+.show-arrow{position:absolute;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:white;cursor:pointer;font-size:18px;z-index:20;box-shadow:0 4px 14px rgba(0,0,0,.1)}
+.show-arrow:hover{background:var(--granads-primary);color:white;border-color:var(--granads-primary)}
+#showPrev{left:10px}#showNext{right:10px}
+.show-foot{display:flex;justify-content:space-between;align-items:center;padding:6px 26px 14px;font-size:12px;color:var(--muted)}
+.show-foot a{color:var(--granads-primary);font-size:12px}
 @media(max-width:768px){
-  .show-card:nth-child(1){height:220px}
-  .show-card:nth-child(2){height:260px}
-  .show-card:nth-child(3){height:240px}
-  .show-card:nth-child(4){height:250px}
-  .show-card:nth-child(5){height:230px}
+  .show-card{flex-basis:56vw}
+  .show-card + .show-card{margin-left:-40px}
+  .show-card .ph{height:210px;font-size:18px}
 }
 
 /* SECTIONS */
@@ -140,7 +140,11 @@ footer .brand{font-weight:800;color:var(--granads-primary);letter-spacing:.1em}
   </div>
 
   <div class="showcase" id="porto">
-    <div class="show-row" id="showRow"></div>
+    <div class="show-viewport">
+      <button class="show-arrow" id="showPrev" aria-label="prev">‹</button>
+      <div class="show-row" id="showRow"></div>
+      <button class="show-arrow" id="showNext" aria-label="next">›</button>
+    </div>
     <div class="show-foot">
       <span>Recent Project</span>
       <a href="#jadwal">See More</a>
@@ -228,6 +232,8 @@ const shots = [
 document.getElementById('showRow').innerHTML = shots.map(s=>
   `<div class="show-card"><div class="ph" style="background:${s.bg};color:${s.c}"><div>${s.t}<small>${s.s}</small></div></div></div>`
 ).join('');
+document.getElementById('showPrev').onclick = ()=> document.getElementById('showRow').scrollBy({left:-320,behavior:'smooth'});
+document.getElementById('showNext').onclick = ()=> document.getElementById('showRow').scrollBy({left:320,behavior:'smooth'});
 
 // --- JADWAL: kalender sama kayak workspace (read-only) ---
 let schedules = [];
