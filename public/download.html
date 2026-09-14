@@ -87,11 +87,30 @@
 <script>
 const params = new URLSearchParams(location.search);
 const projectId = params.get('id');
+const directFolderId = params.get('folder');
 
 async function init(){
   try {
-    const shoots = await fetch('/api/shoots').then(r=>r.json());
-    const project = shoots.find(p=>p.id===projectId);
+    let project = null;
+
+    if(directFolderId){
+      project = { name:'Photo Delivery', date:null, location:null, deliveryFolderId:directFolderId };
+    } else {
+      const [shoots, projects] = await Promise.all([
+        fetch('/api/shoots').then(r=>r.json()).catch(()=>[]),
+        fetch('/api/projects').then(r=>r.json()).catch(()=>[])
+      ]);
+
+      project = shoots.find(p=>p.id===projectId);
+
+      if(!project){
+        const p = projects.find(x=>x.id===projectId);
+        if(p && p.driveFolders && p.driveFolders.selected){
+          project = { name:p.clientName, date:null, location:null, deliveryFolderId:p.driveFolders.selected };
+        }
+      }
+    }
+
     if(!project || !project.deliveryFolderId){
       document.getElementById('loading').innerHTML = '<div class="card" style="max-width:500px;margin:0 auto;text-align:center;padding:40px"><h3>Link tidak valid</h3><p class="hint">Project tidak ditemukan atau belum ada foto yang diupload.</p></div>';
       return;

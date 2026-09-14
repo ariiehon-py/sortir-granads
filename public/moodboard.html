@@ -343,7 +343,7 @@ function openDelivery(id){
   document.getElementById('deliveryLink').value = p?.deliveryLink || '';
   if(p?.deliveryFolderId){
     document.getElementById('deliveryResult').style.display='block';
-    document.getElementById('deliveryUrl').value = `${location.origin}/download.html?id=${id}`;
+    document.getElementById('deliveryUrl').value = `${location.origin}/download.html?folder=${p.deliveryFolderId}`;
   } else {
     document.getElementById('deliveryResult').style.display='none';
   }
@@ -370,7 +370,7 @@ async function saveDelivery(){
   p.deliveryFolderId = folderId;
   await api(`/api/shoots/${deliveryProjectId}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({deliveryLink:link, deliveryFolderId:folderId})});
   document.getElementById('deliveryResult').style.display='block';
-  document.getElementById('deliveryUrl').value = `${location.origin}/download.html?id=${deliveryProjectId}`;
+  document.getElementById('deliveryUrl').value = `${location.origin}/download.html?folder=${folderId}`;
   renderList();
 }
 
@@ -387,7 +387,8 @@ async function fetchShootDrive(shootId, projectId){
 }
 
 function copyDeliveryLink(id){
-  const url = `${location.origin}/download.html?id=${id}`;
+  const p = projects.find(x=>x.id===id);
+  const url = p?.deliveryFolderId ? `${location.origin}/download.html?folder=${p.deliveryFolderId}` : `${location.origin}/download.html?id=${id}`;
   navigator.clipboard.writeText(url);
   alert('Link delivery disalin!');
 }
