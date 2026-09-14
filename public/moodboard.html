@@ -15,6 +15,7 @@
     <img src="assets/logo/logo.png" alt="Granads" style="height:32px;width:auto;object-fit:contain" onerror="this.style.display='none'"/>
   </div>
   <div class="nav">
+    <a href="projects.html">Projects</a>
     <a href="schedule.html">Jadwal</a>
     <a href="moodboard.html" class="active">Moodboard</a>
   </div>
@@ -98,6 +99,40 @@
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
         <button class="btn ghost small" onclick="document.getElementById('deliveryModal').style.display='none'">Tutup</button>
         <button class="btn small" onclick="saveDelivery()">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="deliveryFullModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;align-items:center;justify-content:center">
+  <div style="background:white;border-radius:16px;padding:24px;max-width:480px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2)">
+    <h3 style="margin:0 0 6px">Delivery Full</h3>
+    <p class="hint" style="margin:0 0 16px;font-size:12px">Buat link pemilihan foto untuk client.</p>
+    <div style="display:grid;gap:12px">
+      <div>
+        <label>Link Google Drive Folder</label>
+        <input id="dfDriveLink" placeholder="https://drive.google.com/drive/folders/..."/>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <label>Maks Pemilihan Foto</label>
+          <input id="dfMaxSelection" type="number" value="20" min="1"/>
+        </div>
+        <div>
+          <label>Deadline</label>
+          <input id="dfDeadline" type="date"/>
+        </div>
+      </div>
+      <div id="dfResult" style="display:none">
+        <label>Link untuk Client</label>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input id="dfUrl" readonly style="flex:1;font-size:12px"/>
+          <button class="btn small ghost" onclick="navigator.clipboard.writeText(document.getElementById('dfUrl').value);alert('Copied!')">Salin</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+        <button class="btn ghost small" onclick="document.getElementById('deliveryFullModal').style.display='none'">Tutup</button>
+        <button class="btn small" id="btnCreateFull" onclick="createFullProject()">Buat Link</button>
       </div>
     </div>
   </div>
@@ -221,10 +256,37 @@ async function deleteProject(id){
 
 let deliveryProjectId = null;
 
+let deliveryFullProjectId = null;
+
 function openDeliveryFull(id){
+  deliveryFullProjectId = id;
   const p = projects.find(x=>x.id===id);
-  const name = p ? p.name : '';
-  window.open('owner.html?name='+encodeURIComponent(name), '_blank');
+  document.getElementById('dfDriveLink').value = '';
+  document.getElementById('dfMaxSelection').value = '20';
+  document.getElementById('dfDeadline').value = p?.date || '';
+  document.getElementById('dfResult').style.display='none';
+  document.getElementById('btnCreateFull').disabled=false;
+  document.getElementById('btnCreateFull').textContent='Buat Link';
+  document.getElementById('deliveryFullModal').style.display='flex';
+}
+
+async function createFullProject(){
+  const p = projects.find(x=>x.id===deliveryFullProjectId);
+  if(!p) return;
+  const driveLink = document.getElementById('dfDriveLink').value.trim();
+  const maxSelection = document.getElementById('dfMaxSelection').value;
+  const deadline = document.getElementById('dfDeadline').value;
+  if(!driveLink) return alert('Link Drive wajib diisi');
+  const btn = document.getElementById('btnCreateFull');
+  btn.disabled=true; btn.textContent='Membuat...';
+  try{
+    const r = await fetch('/api/projects', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({clientName: p.name, driveLink, maxSelection, deadline})});
+    const j = await r.json();
+    if(!r.ok) throw new Error(j.error);
+    document.getElementById('dfResult').style.display='block';
+    document.getElementById('dfUrl').value = j.fullClientLink;
+  }catch(e){ alert(e.message) }
+  finally{ btn.disabled=false; btn.textContent='Buat Link' }
 }
 
 function openDelivery(id){

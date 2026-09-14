@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Granads — Project</title>
+<title>Granads — Projects</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
@@ -15,7 +15,7 @@
     <img src="assets/logo/logo.png" alt="Granads" style="height:32px;width:auto;object-fit:contain" onerror="this.style.display='none'"/>
   </div>
   <div class="nav">
-    <a href="projects.html">Projects</a>
+    <a href="projects.html" class="active">Projects</a>
     <a href="schedule.html">Jadwal</a>
     <a href="moodboard.html">Moodboard</a>
   </div>
@@ -31,43 +31,16 @@
   </div>
 </div>
 <div class="container">
-  <div style="margin-bottom:16px">
-    <h1 style="margin:0">Project</h1>
-  </div>
-
-  <div class="card" style="margin-top:14px">
-    <h3 style="margin:0 0 12px">Buat Project Baru</h3>
-    <div style="display:grid;gap:12px">
-      <div>
-        <label>Nama Client</label>
-        <input id="clientName" placeholder="cth: Rina & Dimas - Prewedding"/>
-      </div>
-      <div>
-        <label>Link Google Drive Folder</label>
-        <input id="driveLink" placeholder="https://drive.google.com/drive/folders/..."/>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div>
-          <label>Maks Pemilihan Foto</label>
-          <input id="maxSelection" type="number" value="20" min="1"/>
-        </div>
-        <div>
-          <label>Deadline</label>
-          <input id="deadline" type="date"/>
-        </div>
-      </div>
-      <button class="btn gold" id="btnCreate" style="margin-top:4px">+ Buat Link Klien</button>
-      <div id="createResult" style="display:none"></div>
-    </div>
-  </div>
-
-  <div class="card" style="margin-top:18px">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-      <h3 style="margin:0">Daftar Project</h3>
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+    <h1 style="margin:0">Projects</h1>
+    <div style="display:flex;gap:8px;align-items:center">
       <button class="btn ghost small" id="btnRefresh">Refresh</button>
-      <span class="hint" id="authMini" style="margin-left:auto"></span>
+      <span class="hint" id="authMini"></span>
     </div>
-    <div style="overflow:auto;margin-top:10px">
+  </div>
+
+  <div class="card">
+    <div style="overflow:auto">
       <table class="table" id="projectsTable">
         <thead>
           <tr>
@@ -196,13 +169,12 @@ async function loadProjects(){
   projects = data;
   const tbody = document.getElementById('projectsBody');
   if(data.length===0){
-    tbody.innerHTML = `<tr><td colspan="4" class="hint" style="text-align:center;padding:24px">Belum ada project. Buat di atas dulu.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="4" class="hint" style="text-align:center;padding:24px">Belum ada project.</td></tr>`;
     return;
   }
   tbody.innerHTML = data.map(p=>{
     const link = `${location.origin}/client.html?id=${p.id}`;
     const c = p.counts;
-    const hasFolders = p.driveFolders ? '' : '';
     const totalChosen = c.selected + c.considered;
     const canMakeFolder = totalChosen>0;
     return `<tr>
@@ -231,43 +203,6 @@ async function loadProjects(){
   }).join('');
 }
 
-async function createProject(){
-  const clientName = document.getElementById('clientName').value.trim();
-  const driveLink = document.getElementById('driveLink').value.trim();
-  const maxSelection = document.getElementById('maxSelection').value;
-  const deadline = document.getElementById('deadline').value;
-  if(!clientName) return alert('Nama client wajib');
-  const btn = document.getElementById('btnCreate');
-  btn.disabled=true; btn.textContent='Membuat...';
-  try{
-    const res = await api('/api/projects', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({clientName, driveLink, maxSelection, deadline})});
-    const box = document.getElementById('createResult');
-    box.style.display='block';
-    box.style.background='#F0FDF4'; box.style.border='1px solid #BBF7D0'; box.style.padding='12px'; box.style.borderRadius='12px'; box.style.marginTop='10px';
-    box.innerHTML = `<b>Berhasil!</b> Link untuk <b>${res.project.clientName}</b><br>
-      <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
-        <a href="${res.clientLink}" target="_blank" class="mono" style="font-size:12px;color:var(--granads-primary)">${res.fullClientLink}</a>
-      </div>`;
-    document.getElementById('clientName').value='';
-    await loadProjects();
-  }catch(e){ alert(e.message)}
-  finally{btn.disabled=false; btn.textContent='+ Buat Link Klien'}
-}
-
-async function uploadPhotos(id, files){
-  if(!files.length) return;
-  const fd = new FormData();
-  for(const f of files) fd.append('photos', f);
-  try{
-    const r = await fetch(`/api/projects/${id}/upload`, {method:'POST', body: fd});
-    const j = await r.json();
-    if(!r.ok) throw new Error(j.error);
-    alert(`Upload ${j.uploaded} foto berhasil`);
-    loadProjects();
-    if(detailProject && detailProject.id===id) openDetail(id);
-  }catch(e){ alert(e.message)}
-}
-
 async function fetchDrive(id){
   const p = projects.find(x=>x.id===id);
   let link = p.driveLink;
@@ -284,6 +219,7 @@ async function deleteProject(id){
   const ok = await showConfirm('Hapus project ini?');
   if(!ok) return;
   await api(`/api/projects/${id}`, {method:'DELETE'});
+  if(detailProject && detailProject.id===id){ document.getElementById('detailSection').style.display='none'; detailProject=null; }
   loadProjects();
 }
 
@@ -295,7 +231,6 @@ async function openDetail(id){
     detailProject = null;
     return;
   }
-  // reset previous button
   if(detailProject){
     const oldBtn = document.getElementById('btnDetail_'+detailProject.id);
     if(oldBtn){ oldBtn.classList.remove('gold'); oldBtn.classList.add('ghost'); }
@@ -311,13 +246,11 @@ async function openDetail(id){
   document.getElementById('detailHint').textContent = `Terpilih ${ _selVals.filter(v=>selVal(v)===1).length}/${p.maxSelection}${ _selVals.filter(v=>selNote(v)).length ? ` • 📝 ${_selVals.filter(v=>selNote(v)).length} catatan` : ''}`;
   if(p.driveFolders){
     document.getElementById('folderLinks').innerHTML = `Folder Drive: <a href="${p.driveFolders.selected?`https://drive.google.com/drive/folders/${p.driveFolders.selected}`:'#'}" target="_blank">Terpilih</a> • Dipertimbangkan`;
-    } else {
+  } else {
     document.getElementById('folderLinks').textContent = 'Belum ada folder Drive.';
   }
-  // activate current button
   const btn = document.getElementById('btnDetail_'+id);
   if(btn){ btn.classList.remove('ghost'); btn.classList.add('gold'); }
-  // show selected filenames + notes
   const sel = p.selections || {};
   const selectedPhotos = p.photos.filter(ph => selVal(sel[ph.id]) === 1);
   const selectedBox = document.getElementById('selectedFiles');
@@ -331,7 +264,6 @@ async function openDetail(id){
   } else {
     selectedBox.style.display = 'none';
   }
-  // juga tampilkan catatan hanya untuk yang Dipilih
   const anyNotes = p.photos.filter(ph=> selVal(sel[ph.id])===1 && selNote(sel[ph.id]));
   if(anyNotes.length){
     let noteBox = document.getElementById('notesList');
@@ -387,7 +319,6 @@ function renderDetail(){
 }
 
 document.getElementById('btnLogoutHidden') && (document.getElementById('btnLogoutHidden').onclick = async ()=>{ await api('/auth/logout',{method:'POST'}); checkAuth(); alert('Logout berhasil') });
-document.getElementById('btnCreate').onclick = createProject;
 document.getElementById('btnRefresh').onclick = loadProjects;
 document.getElementById('detailFilters').onclick = (e)=>{
   if(e.target.tagName!=='BUTTON') return;
@@ -419,18 +350,11 @@ document.getElementById('btnCreateFolders').onclick = async ()=>{
     document.getElementById('folderLinks').innerHTML = Object.entries(res.folders).map(([k,v])=>`<a href="${v}" target="_blank">${k}</a>`).join(' • ');
     loadProjects();
   }catch(e){ alert(e.message)}
-  finally{   btn.disabled=false; btn.textContent='Bikin Folder di Drive' }
+  finally{ btn.disabled=false; btn.textContent='Bikin Folder di Drive' }
 };
 
 checkAuth();
 loadProjects();
-
-const urlParams = new URLSearchParams(location.search);
-const prefillName = urlParams.get('name');
-if(prefillName){
-  document.getElementById('clientName').value = prefillName;
-  document.getElementById('clientName').focus();
-}
 
 let editLinkId = null;
 function editDriveLink(id){
