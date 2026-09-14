@@ -9,21 +9,28 @@ node server.js
 ```
 
 ## Deploy ke Railway + Cloudflare
-1. Push ke GitHub: `git init; git add .; git commit -m "deploy ready"; git push`
+Domain production: `https://sortir.granads.k3unair.com`
+1. Push ke GitHub (tanpa `gh`, via browser):
+   ```powershell
+   git init; git add .; git commit -m "deploy: railway + catatan Dipilih only"
+   # lalu buat repo di github.com/new (nama: granads-sortir, public), terus:
+   git remote add origin https://github.com/USERNAME_KAMU/granads-sortir.git
+   git branch -M main; git push -u origin main
+   ```
 2. Railway → New Project → Deploy from GitHub → pilih repo
 3. Variables (Railway Dashboard → Variables):
    ```
    GOOGLE_API_KEY=...
    GOOGLE_CLIENT_ID=...
    GOOGLE_CLIENT_SECRET=...
-   GOOGLE_REDIRECT_URI=https://FOTO.GRANADS.ME/auth/callback
+   GOOGLE_REDIRECT_URI=https://sortir.granads.k3unair.com/auth/callback
    FIREBASE_PROJECT_ID=...
    FIREBASE_CLIENT_EMAIL=...
    FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n"
    ```
-4. Railway → Settings → Domains → Generate / Custom Domain → `foto.granads.me` → copy CNAME ke Cloudflare DNS (Proxy ON ☁️)
-5. Google Cloud Console → Credentials → OAuth redirect URI → tambah `https://foto.granads.me/auth/callback`
-6. Buka `https://foto.granads.me/auth/status` cek `configured:true`, lalu `/auth/login`
+4. Railway → Settings → Domains → Custom Domain → `sortir.granads.k3unair.com` → copy CNAME ke Cloudflare DNS (zone `k3unair.com`, name `sortir.granads`, Proxy ON ☁️)
+5. Google Cloud Console → Credentials → OAuth redirect URI → tambah `https://sortir.granads.k3unair.com/auth/callback`
+6. Buka `https://sortir.granads.k3unair.com/auth/status` cek `configured:true`, lalu `/auth/login`
 > `data/google_tokens.json` di Railway ephemeral — setelah deploy ulang perlu re-login Google sekali. Untuk persistent, tambah Volume di Railway mount ke `/app/data`.
 
 
