@@ -441,6 +441,22 @@ app.delete('/api/projects/:id', async (req, res) => {
 
 app.get('/health', (req,res)=> res.json({ ok:true, uptime: process.uptime(), ts: new Date().toISOString() }));
 
+// --- PUBLIC API (no auth) ---
+app.get('/api/public/schedules', async (req, res) => {
+  const snap = await schedulesCol.orderBy('date', 'asc').get();
+  const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  res.json(items);
+});
+
+// --- Domain routing: granads.k3unair.com → portfolio ---
+app.get('/', (req, res) => {
+  const host = (req.get('host') || '').split(':')[0];
+  if(host === 'granads.k3unair.com'){
+    return res.sendFile(path.join(__dirname, 'public', 'portfolio.html'));
+  }
+  res.redirect('/moodboard.html');
+});
+
 // --- SHOOTS API (Firestore) ---
 app.get('/api/shoots', async (req, res) => {
   const snap = await shootsCol.orderBy('createdAt', 'desc').get();
@@ -498,7 +514,6 @@ app.use((req, res, next) => {
   next();
 });
 app.use(express.static(path.join(__dirname, 'public')));
-app.get('/', (req, res) => res.redirect('/moodboard.html'));
 
 app.listen(PORT, () => {
   console.log(`Granads Sortir Foto running at http://localhost:${PORT}`);
