@@ -28,13 +28,23 @@
 </head>
 <body>
 <div class="topbar">
-  <div class="brand" style="display:flex;align-items:center;gap:10px">
+  <div class="brand" id="logoBrand" style="display:flex;align-items:center;gap:10px;cursor:pointer" title="Auth">
     <img src="assets/logo/logo.png" alt="Granads" style="height:32px;width:auto;object-fit:contain" onerror="this.style.display='none'"/>
   </div>
   <div class="nav">
     <a href="projects.html">Projects</a>
     <a href="schedule.html" class="active">Jadwal</a>
-    <a href="moodboard.html">Moodboard</a>
+    <a href="moodboard.html">Shoots</a>
+  </div>
+</div>
+<div id="hiddenAuth" style="display:none;max-width:1100px;margin:0 auto;padding:10px 24px;background:#FFFCF8;border-bottom:1px solid var(--border);align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+  <div>
+    <b style="font-size:12px">Auth Drive</b>
+    <div class="hint" id="authHintHidden" style="font-size:12px"></div>
+  </div>
+  <div style="display:flex;gap:8px">
+    <a href="/auth/login" class="btn gold small" id="btnLoginHidden">Login Google</a>
+    <button class="btn ghost small" id="btnLogoutHidden">Logout</button>
   </div>
 </div>
 
@@ -118,6 +128,33 @@ let schedules = JSON.parse(localStorage.getItem('granads_schedules') || '[]');
 let currentDate = new Date();
 let editingId = null;
 let confirmResolve = null;
+
+async function api(path, opts){
+  const r = await fetch(path, opts);
+  const j = await r.json();
+  if(!r.ok) throw new Error(j.error||j.message||'Error');
+  return j;
+}
+
+async function checkAuth(){
+  try{
+    const s = await api('/auth/status');
+    const hint = document.getElementById('authHintHidden');
+    const btnLogin = document.getElementById('btnLoginHidden');
+    if(hint){
+      if(s.loggedIn) hint.textContent = `Login sebagai ${s.email||'Google'} - siap bikin folder`;
+      else if(s.configured) hint.textContent = 'Belum login - klik Login Google';
+      else hint.textContent = 'OAuth belum dikonfigurasi';
+      if(btnLogin) btnLogin.textContent = s.loggedIn ? 'Re-login' : 'Login Google';
+    }
+  }catch{}
+}
+document.getElementById('logoBrand').addEventListener('click', ()=>{
+  const p=document.getElementById('hiddenAuth');
+  p.style.display = p.style.display==='none' ? 'flex' : 'none';
+});
+document.getElementById('btnLogoutHidden') && (document.getElementById('btnLogoutHidden').onclick = async ()=>{ await api('/auth/logout',{method:'POST'}); checkAuth(); alert('Logout berhasil') });
+checkAuth();
 
 function showConfirm(msg){
   return new Promise(resolve=>{
