@@ -206,19 +206,19 @@ async function loadProjects(){
     const totalChosen = c.selected + c.considered;
     const canMakeFolder = totalChosen>0;
     return `<tr>
-      <td><b>${p.clientName}</b><br><span class="mono" style="font-size:11px;color:#888">${p.id} • ${new Date(p.createdAt).toLocaleDateString('id-ID')}</span></td>
-      <td>
+      <td data-label="Client"><b>${p.clientName}</b><br><span class="mono" style="font-size:11px;color:#888">${p.id} • ${new Date(p.createdAt).toLocaleDateString('id-ID')}</span></td>
+      <td data-label="Link">
         <a href="${link}" target="_blank" class="mono" style="font-size:11px;color:var(--granads-primary)">${link}</a>
         ${p.driveFolders ? `<div class="hint" style="font-size:11px"><a href="https://drive.google.com/drive/folders/${p.driveFolders.selected}" target="_blank">Terpilih</a> • <a href="https://drive.google.com/drive/folders/${p.driveFolders.considered}" target="_blank">Ragu</a></div>` : ''}
       </td>
-      <td>
+      <td data-label="Info">
         <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
           <span class="badge ok">${c.selected} dipilih</span>
           <span class="badge warn">${c.considered} ragu</span>
           ${c.notes?`<span class="badge" style="background:#FFF7ED;border-color:#FDBA74;color:#9A3412">📝 ${c.notes} catatan</span>`:''}
         </div>
       </td>
-      <td>
+      <td data-label="Aksi">
         <div style="display:flex;gap:4px;flex-wrap:wrap">
           <button class="btn small ghost" id="btnDetail_${p.id}" onclick="openDetail('${p.id}')">Hasil</button>
           <button class="btn small ghost" onclick="editDriveLink('${p.id}')">Edit Link</button>
