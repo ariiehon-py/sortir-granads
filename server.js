@@ -439,6 +439,14 @@ app.delete('/api/projects/:id', async (req, res) => {
 
 app.get('/health', (req,res)=> res.json({ ok:true, uptime: process.uptime(), ts: new Date().toISOString() }));
 app.use('/uploads', express.static(UPLOAD_DIR));
+app.use((req, res, next) => {
+  if(req.path.endsWith('.html') || req.path.endsWith('.css') || req.path.endsWith('.js')){
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+  }
+  next();
+});
 app.use(express.static(path.join(__dirname, 'public')));
 app.get('/', (req, res) => res.redirect('/moodboard.html'));
 
