@@ -46,7 +46,7 @@ body{background:var(--granads-cream);color:var(--granads-dark);overflow-x:hidden
 .show-viewport{position:relative;overflow:hidden;padding:14px 0 2px;max-width:1100px;margin:0 auto;width:100%}
 .show-row{display:flex;align-items:center;justify-content:center;overflow-x:auto;padding:10px 24px 14px;scroll-snap-type:x mandatory;scrollbar-width:none;gap:0}
 .show-row::-webkit-scrollbar{display:none}
-.show-card{flex:0 0 clamp(200px,30vw,300px);scroll-snap-align:center;border-radius:10px;overflow:hidden;position:relative;box-shadow:0 16px 40px rgba(0,0,0,.18);border:1px solid rgba(0,0,0,.06);transition:transform .25s}
+.show-card{flex:0 0 clamp(200px,30vw,300px);scroll-snap-align:center;border-radius:10px;overflow:hidden;position:relative;box-shadow:0 10px 28px rgba(0,0,0,.12);transition:transform .25s}
 .show-card + .show-card{margin-left:-56px}
 .show-card:nth-child(odd){transform:rotate(-2deg) translateY(8px)}
 .show-card:nth-child(even){transform:rotate(1.5deg)}
@@ -56,8 +56,6 @@ body{background:var(--granads-cream);color:var(--granads-dark);overflow-x:hidden
 .show-arrow{position:absolute;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:white;cursor:pointer;font-size:18px;z-index:20;box-shadow:0 4px 14px rgba(0,0,0,.1)}
 .show-arrow:hover{background:var(--granads-primary);color:white;border-color:var(--granads-primary)}
 #showPrev{left:10px}#showNext{right:10px}
-.show-foot{display:flex;justify-content:space-between;align-items:center;padding:2px 26px 10px;font-size:12px;color:var(--muted);max-width:1100px;margin:0 auto;width:100%}
-.show-foot a{color:var(--granads-primary);font-size:12px}
 @media(max-width:768px){
   .show-card{flex-basis:56vw}
   .show-card + .show-card{margin-left:-40px}
@@ -120,11 +118,10 @@ footer .brand{font-weight:800;color:var(--granads-primary);letter-spacing:.1em}
 <body>
 
 <nav class="navbar" id="navbar">
-  <div class="nav-brand">GRANADS<span>.</span></div>
+  <div class="nav-brand"><img src="assets/logo/logo.png" alt="Granads" style="height:28px;width:auto;object-fit:contain"/></div>
   <div class="nav-links">
     <a href="#porto">Porto</a>
     <a href="#jadwal">Jadwal</a>
-    <a href="#paket">Paket</a>
     <a href="#kontak">Kontak</a>
   </div>
 </nav>
@@ -134,8 +131,7 @@ footer .brand{font-weight:800;color:var(--granads-primary);letter-spacing:.1em}
     <div class="hero-tag">Granads Photography</div>
     <h1>Setiap foto punya cerita. Kami hadir untuk memastikan <b>cerita Anda terabadikan dengan sempurna.</b></h1>
     <div class="hero-cta">
-      <a href="#paket" class="btn btn-primary">Lihat Paket</a>
-      <a href="#kontak" class="btn btn-outline">Hubungi Kami</a>
+      <a href="#jadwal" class="btn btn-primary">Lihat Jadwal</a>
     </div>
   </div>
 
@@ -144,10 +140,6 @@ footer .brand{font-weight:800;color:var(--granads-primary);letter-spacing:.1em}
       <button class="show-arrow" id="showPrev" aria-label="prev">‹</button>
       <div class="show-row" id="showRow"></div>
       <button class="show-arrow" id="showNext" aria-label="next">›</button>
-    </div>
-    <div class="show-foot">
-      <span>Recent Project</span>
-      <a href="#jadwal">See More</a>
     </div>
   </div>
 </div>
@@ -167,33 +159,6 @@ footer .brand{font-weight:800;color:var(--granads-primary);letter-spacing:.1em}
     </div>
     <div class="calendar" id="calendar"></div>
     <div class="schedule-list" id="scheduleList"></div>
-  </div>
-</section>
-
-<section id="paket" style="background:white">
-  <div class="section-inner">
-    <div class="section-label">Paket</div>
-    <h2 class="section-title">Pilih Paket Foto</h2>
-    <div class="pricing-grid">
-      <div class="price-card">
-        <h3>Basic</h3>
-        <div class="price">Rp 500K</div>
-        <ul><li>1 lokasi, 1 set baju</li><li>30 menit sesi foto</li><li>15 foto edit pilihan</li><li>File digital via Drive</li></ul>
-        <a href="#kontak" class="btn btn-outline" style="width:100%;justify-content:center">Pilih</a>
-      </div>
-      <div class="price-card featured">
-        <h3>Silver</h3>
-        <div class="price">Rp 800K</div>
-        <ul><li>2 lokasi, 2 set baju</li><li>60 menit sesi foto</li><li>30 foto edit pilihan</li><li>Cetak 5R + A4</li></ul>
-        <a href="#kontak" class="btn btn-primary" style="width:100%;justify-content:center">Pilih</a>
-      </div>
-      <div class="price-card">
-        <h3>Gold</h3>
-        <div class="price">Rp 1,2Jt</div>
-        <ul><li>3 lokasi, unlimited baju</li><li>90 menit sesi foto</li><li>50+ foto edit pilihan</li><li>Video behind the scene</li></ul>
-        <a href="#kontak" class="btn btn-outline" style="width:100%;justify-content:center">Pilih</a>
-      </div>
-    </div>
   </div>
 </section>
 
