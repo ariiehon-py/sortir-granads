@@ -21,7 +21,7 @@ app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // --- ADMIN AUTH: Google login whitelist ---
-const ALLOWED_EMAILS = (process.env.ADMIN_EMAILS || 'nadhasantika63@gmail.com,granadds@gmail.com').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
+const ALLOWED_EMAILS = (process.env.ADMIN_EMAILS || 'nadhasantika63@gmail.com,granadds@gmail.com,hellonadiaaane@gmail.com').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
 function isAdminEmail(email){
   if(!email) return false;
   return ALLOWED_EMAILS.includes(String(email).toLowerCase());
