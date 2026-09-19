@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Granads — Portofolio Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand" id="logoBrand" style="display:flex;align-items:center;gap:10px;cursor:pointer" title="Auth">
+    <img src="assets/logo/logo.png" alt="Granads" style="height:32px;width:auto;object-fit:contain" onerror="this.style.display='none'"/>
+  </div>
+  <div class="nav">
+    <a href="projects.html">Projects</a>
+    <a href="schedule.html">Jadwal</a>
+    <a href="moodboard.html">Shoots</a>
+    <a href="porto-admin.html" class="active">Portofolio</a>
+    <a href="owner.html">Pesanan</a>
+  </div>
+</div>
+<div id="hiddenAuth" style="display:none;max-width:1100px;margin:0 auto;padding:10px 24px;background:#FFFCF8;border-bottom:1px solid var(--border);align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+  <div><b style="font-size:12px">Auth Drive</b><div class="hint" id="authHintHidden" style="font-size:12px"></div></div>
+  <div style="display:flex;gap:8px"><a href="/auth/login" class="btn gold small" id="btnLoginHidden">Login Google</a><button class="btn ghost small" id="btnLogoutHidden">Logout</button></div>
+</div>
+
+<div class="container">
+  <div id="adminGate" style="display:none;margin-bottom:16px"></div>
+  <h1 style="margin:0">Portofolio</h1>
+
+  <div id="showcaseCard" class="card" style="margin-top:18px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <h3 style="margin:0">Showcase Porto</h3>
+      <button class="btn ghost small" id="btnRefreshShowcase">Refresh</button>
+    </div>
+    <div style="display:grid;gap:10px;margin-top:12px">
+      <div><label>Link Google Drive Folder Porto</label><input id="scDriveLink" placeholder="https://drive.google.com/drive/folders/..."/></div>
+      <button class="btn gold" id="btnSyncShowcase">Sync dari Drive</button>
+      <div id="scMsg" class="hint" style="display:none"></div>
+    </div>
+    <div id="showcaseList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-top:16px"></div>
+  </div>
+
+  <div id="igCard" class="card" style="margin-top:18px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <h3 style="margin:0">Instagram</h3>
+      <button class="btn ghost small" id="btnRefreshIg">Refresh</button>
+    </div>
+    <div id="igInputs" style="display:grid;gap:8px;margin-top:12px"></div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn ghost small" id="btnAddIg">+ Tambah Link</button>
+      <button class="btn gold" id="btnSaveIg" style="margin-left:auto">Simpan IG</button>
+    </div>
+    <div id="igMsg" class="hint" style="display:none;margin-top:8px"></div>
+    <div id="igPreview" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:16px"></div>
+  </div>
+</div>
+
+<footer style="margin-top:auto;border-top:1px solid var(--border);padding:20px 24px;background:white">
+  <div style="max-width:1100px;margin:0 auto;display:flex;justify-content:center;align-items:center;gap:8px">
+    <img src="assets/logo/logo.png" alt="Granads" style="height:24px;width:auto;object-fit:contain"/>
+    <span class="hint">© 2026 <a href="https://wa.me/62882001540684" target="_blank" rel="noopener" style="color:var(--granads-primary);font-weight:700;text-decoration:underline;text-underline-offset:2px">Granads</a></span>
+  </div>
+</footer>
+
+<div id="confirmModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;align-items:center;justify-content:center">
+  <div style="background:white;border-radius:16px;padding:24px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2)">
+    <p id="confirmMsg" style="margin:0 0 20px;font-size:14px;line-height:1.6"></p>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn small ghost" onclick="confirmResolve(false);document.getElementById('confirmModal').style.display='none'">Batal</button>
+      <button class="btn small" style="background:#B91C1C;border-color:#B91C1C" onclick="confirmResolve(true);document.getElementById('confirmModal').style.display='none'">Hapus</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function esc(s){ return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+async function api(path,opts={}){ const r=await fetch(path,opts); const j=await r.json().catch(()=>({})); if(!r.ok){ if(r.status===401) throw new Error(j.error||'Belum login'); if(r.status===403) throw new Error(j.error||'Akses ditolak'); throw new Error(j.error||j.message||'Error'); } return j; }
+let confirmResolve=null; function showConfirm(msg){ return new Promise(res=>{ confirmResolve=res; document.getElementById('confirmMsg').textContent=msg; document.getElementById('confirmModal').style.display='flex'; }); }
+let authState=null;
+async function checkAuth(){
+  try{
+    const s=await fetch('/auth/status').then(r=>r.json()); authState=s;
+    const hint=document.getElementById('authHintHidden'); const btn=document.getElementById('btnLoginHidden');
+    if(hint){
+      if(s.isAdmin) hint.textContent=`Login sebagai ${s.email} — akses owner aktif`;
+      else if(s.loggedIn) hint.textContent=`Login sebagai ${s.email} — bukan admin (${s.allowed.join(', ')})`;
+      else if(s.configured) hint.textContent='Belum login — klik Login Google';
+      else hint.textContent='OAuth belum dikonfigurasi';
+      if(btn) btn.textContent=s.loggedIn?'Ganti Akun':'Login Google';
+    }
+    const gate=document.getElementById('adminGate');
+    if(gate){
+      if(!s.isAdmin){
+        gate.style.display='block';
+        gate.innerHTML=s.loggedIn?`<div class="card" style="text-align:center;padding:32px"><h3>Akses Ditolak</h3><p class="hint">Login sebagai <b>${esc(s.email)}</b> tidak diizinkan.</p></div>`:`<div class="card" style="text-align:center;padding:32px"><h3>Login Diperlukan</h3><a href="/auth/login" class="btn gold">Login dengan Google</a></div>`;
+      } else gate.style.display='none';
+    }
+  }catch{}
+}
+checkAuth();
+document.getElementById('logoBrand').addEventListener('click', ()=>{ const p=document.getElementById('hiddenAuth'); p.style.display=p.style.display==='none'?'flex':'none'; });
+document.getElementById('btnLogoutHidden') && (document.getElementById('btnLogoutHidden').onclick = async ()=>{ await fetch('/auth/logout',{method:'POST'}); checkAuth(); alert('Logout berhasil'); location.reload(); });
+
+let showcaseData=[]; let showcaseLimit=10;
+function renderShowcase(){
+  const el=document.getElementById('showcaseList');
+  const data=showcaseData;
+  if(!data.length){ el.innerHTML='<div class="hint" style="grid-column:1/-1;text-align:center;padding:12px">Belum ada foto showcase. Isi link Drive di atas lalu Sync.</div>'; return; }
+  const info=data[0]?.driveLink?`<div class="hint" style="grid-column:1/-1;padding:8px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px">Folder: <a href="${esc(data[0].driveLink)}" target="_blank" style="color:var(--granads-primary)">${esc(data[0].driveLink)}</a> • ${data.length} foto</div>`:'';
+  const visible=data.slice(0,showcaseLimit);
+  el.innerHTML=info+visible.map(it=>`<div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;background:white"><div style="height:140px;background:url('${esc(it.url)}') center/cover"></div><div style="padding:8px"><div class="hint" style="font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(it.filename||it.title||'')}</div><button class="btn small ghost" style="width:100%;margin-top:6px;border-color:#FECACA;color:#B91C1C" onclick="deleteShowcase('${it.id}')">Hapus</button></div></div>`).join('');
+  if(data.length>showcaseLimit){
+    el.innerHTML+=`<div style="grid-column:1/-1;text-align:center;padding:12px"><button class="btn ghost small" onclick="showcaseLimit+=10;renderShowcase()">See More (${data.length-showcaseLimit} lainnya)</button></div>`;
+  }
+}
+// showcase
+async function loadShowcase(){
+  try{
+    const data=await api('/api/showcase');
+    showcaseData=data; showcaseLimit=10;
+    renderShowcase();
+  }catch(e){ document.getElementById('showcaseList').innerHTML='<div class="hint">'+esc(e.message)+'</div>'}
+}
+async function deleteShowcase(id){ const ok=await showConfirm('Hapus foto ini dari showcase?'); if(!ok) return; await api('/api/showcase/'+id,{method:'DELETE'}); await loadShowcase(); }
+document.getElementById('btnSyncShowcase').onclick=async()=>{
+  const driveLink=document.getElementById('scDriveLink').value.trim();
+  if(!driveLink) return alert('Isi link Drive folder dulu');
+  const btn=document.getElementById('btnSyncShowcase');btn.disabled=true;btn.textContent='Sync...';
+  const msg=document.getElementById('scMsg');msg.style.display='none';
+  try{ const j=await api('/api/showcase',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({driveLink})}); msg.style.display='block';msg.style.color='#065F46';msg.textContent=`Sync berhasil! ${j.count} foto dari Drive.`; await loadShowcase(); }catch(e){ msg.style.display='block';msg.style.color='#B91C1C';msg.textContent=e.message } finally{btn.disabled=false;btn.textContent='Sync dari Drive'}
+};
+document.getElementById('btnRefreshShowcase')?.addEventListener('click', loadShowcase);
+
+// IG dinamis + embed beneran
+let igLinks=[];
+function normalizeIgLink(raw){
+  if(!raw) return '';
+  raw=raw.trim();
+  const m=raw.match(/data-instgrm-permalink="([^"]+)"/);
+  if(m) raw=m[1];
+  const href=raw.match(/https?:\/\/(www\.)?instagram\.com\/(p|reel|reels|tv)\/[^"'\s<>?]+/);
+  if(href) raw=href[0];
+  else {
+    const any=raw.match(/https?:\/\/(www\.)?instagram\.com\/[^"'\s<>?]+/);
+    if(any) raw=any[0];
+  }
+  raw=raw.split('?')[0].split('#')[0];
+  if(raw && !raw.endsWith('/')) raw+='/';
+  raw=raw.replace(/^http:/,'https:').replace(/^https:\/\/instagram\.com/,'https://www.instagram.com');
+  return raw;
+}
+function renderIgInputs(){
+  const wrap=document.getElementById('igInputs');
+  if(!igLinks.length) igLinks=[''];
+  wrap.innerHTML=igLinks.map((v,i)=>`
+    <div style="display:flex;gap:8px;align-items:center">
+      <input data-idx="${i}" value="${esc(v)}" placeholder="https://www.instagram.com/p/... atau paste kode embed" style="flex:1"/>
+      <button class="btn ghost small" onclick="removeIg(${i})" style="border-color:#FECACA;color:#B91C1C">Hapus</button>
+    </div>`).join('');
+  wrap.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input', e=>{ igLinks[parseInt(e.target.dataset.idx)] = e.target.value; });
+    inp.addEventListener('change', e=>{ igLinks[parseInt(e.target.dataset.idx)] = normalizeIgLink(e.target.value); e.target.value=igLinks[parseInt(e.target.dataset.idx)]; });
+  });
+}
+function addIg(){ igLinks.push(''); renderIgInputs(); }
+function removeIg(i){ igLinks.splice(i,1); if(!igLinks.length) igLinks=['']; renderIgInputs(); renderIgPreview(igLinks.filter(Boolean)); }
+async function loadIg(){
+  try{
+    const data=await api('/api/admin/ig-posts');
+    igLinks=(data.links||[]).length ? data.links : [''];
+    renderIgInputs(); renderIgPreview(igLinks.filter(Boolean));
+  }catch(e){ document.getElementById('igMsg').style.display='block'; document.getElementById('igMsg').textContent=e.message }
+}
+function renderIgPreview(links){
+  const el=document.getElementById('igPreview');
+  const valid=links.filter(Boolean);
+  if(!valid.length){ el.innerHTML='<div class="hint" style="grid-column:1/-1;text-align:center;padding:12px">Belum ada link IG. Tambah di atas lalu Simpan.</div>'; return; }
+  el.innerHTML=valid.map(u=>{
+    const permalink=normalizeIgLink(u);
+    const embedUrl=permalink+'embed/';
+    return `<div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;background:white"><iframe src="${esc(embedUrl)}" style="width:100%;height:400px;border:0;display:block" loading="lazy"></iframe><a href="${esc(permalink)}" target="_blank" style="display:block;padding:6px;text-align:center;font-size:11px;color:var(--granads-primary)">Buka di IG →</a></div>`;
+  }).join('');
+}
+document.getElementById('btnAddIg').onclick=addIg;
+document.getElementById('btnSaveIg').onclick=async()=>{
+  // kumpulkan dari input
+  const inputs=document.querySelectorAll('#igInputs input');
+  let links=[...inputs].map(i=> normalizeIgLink(i.value.trim())).filter(Boolean);
+  const btn=document.getElementById('btnSaveIg');btn.disabled=true;btn.textContent='Menyimpan...';
+  const msg=document.getElementById('igMsg');msg.style.display='none';
+  try{ const j=await api('/api/admin/ig-posts',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({links})}); igLinks=j.links.length?j.links:['']; renderIgInputs(); msg.style.display='block';msg.style.color='#065F46';msg.textContent=`Tersimpan ${j.links.length} post IG!`; renderIgPreview(j.links); }catch(e){ msg.style.display='block';msg.style.color='#B91C1C';msg.textContent=e.message } finally{btn.disabled=false;btn.textContent='Simpan IG'}
+};
+document.getElementById('btnRefreshIg')?.addEventListener('click', loadIg);
+loadShowcase(); loadIg();
+</script>
+</body>
+</html>

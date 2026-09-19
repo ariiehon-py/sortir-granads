@@ -18,6 +18,8 @@
     <a href="projects.html">Projects</a>
     <a href="schedule.html">Jadwal</a>
     <a href="moodboard.html" class="active">Shoots</a>
+    <a href="porto-admin.html">Portofolio</a>
+    <a href="owner.html">Pesanan</a>
   </div>
 </div>
 <div id="hiddenAuth" style="display:none;max-width:1100px;margin:0 auto;padding:10px 24px;background:#FFFCF8;border-bottom:1px solid var(--border);align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
@@ -153,38 +155,55 @@ let projects = [];
 let schedules = [];
 let confirmResolve = null;
 
-async function api(path, opts){
+function esc(s){ return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+async function api(path, opts={}){
   const r = await fetch(path, opts);
-  const j = await r.json();
-  if(!r.ok) throw new Error(j.error||j.message||'Error');
+  const j = await r.json().catch(()=>({}));
+  if(!r.ok){
+    if(r.status===401) throw new Error(j.error||'Belum login Google');
+    if(r.status===403) throw new Error(j.error||'Akses ditolak');
+    throw new Error(j.error||j.message||'Error');
+  }
   return j;
 }
 
 async function init(){
-  [projects, schedules] = await Promise.all([api('/api/shoots'), api('/api/schedules')]);
-  renderList();
+  try{
+    [projects, schedules] = await Promise.all([api('/api/shoots'), api('/api/schedules')]);
+    renderList();
+  }catch(e){
+    const el=document.getElementById('projectList');
+    if(el) el.innerHTML = `<div class="card" style="text-align:center;padding:32px"><h3>Perlu Login</h3><p class="hint">${esc(e.message)}</p><a href="/auth/login" class="btn gold">Login dengan Google</a></div>`;
+  }
 }
-init();
 
+let authState=null;
 async function checkAuth(){
   try{
-    const s = await api('/auth/status');
+    const s = await fetch('/auth/status').then(r=>r.json());
+    authState=s;
     const hint = document.getElementById('authHintHidden');
     const btnLogin = document.getElementById('btnLoginHidden');
     if(hint){
-      if(s.loggedIn) hint.textContent = `Login sebagai ${s.email||'Google'} - siap bikin folder`;
-      else if(s.configured) hint.textContent = 'Belum login - klik Login Google';
+      if(s.isAdmin) hint.textContent = `Login sebagai ${s.email} — akses owner aktif`;
+      else if(s.loggedIn) hint.textContent = `Login sebagai ${s.email} — bukan admin (${s.allowed.join(', ')})`;
+      else if(s.configured) hint.textContent = 'Belum login — klik Login Google (hanya nadhasantika63@gmail.com / granadds@gmail.com)';
       else hint.textContent = 'OAuth belum dikonfigurasi';
-      if(btnLogin) btnLogin.textContent = s.loggedIn ? 'Re-login' : 'Login Google';
+      if(btnLogin) btnLogin.textContent = s.loggedIn ? 'Ganti Akun' : 'Login Google';
+    }
+    const el=document.getElementById('projectList');
+    if(!s.isAdmin && el && projects.length===0){
+      // gate will be shown by init catch, keep
     }
   }catch{}
 }
+checkAuth();
+init();
 document.getElementById('logoBrand').addEventListener('click', ()=>{
   const p=document.getElementById('hiddenAuth');
   p.style.display = p.style.display==='none' ? 'flex' : 'none';
 });
-document.getElementById('btnLogoutHidden') && (document.getElementById('btnLogoutHidden').onclick = async ()=>{ await api('/auth/logout',{method:'POST'}); checkAuth(); alert('Logout berhasil') });
-checkAuth();
+document.getElementById('btnLogoutHidden') && (document.getElementById('btnLogoutHidden').onclick = async ()=>{ await fetch('/auth/logout',{method:'POST'}); checkAuth(); alert('Logout berhasil'); location.reload(); });
 
 function showConfirm(msg){
   return new Promise(resolve=>{
@@ -210,17 +229,17 @@ function renderList(){
     const timeStr = p.time || '';
     return `<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding:18px 24px">
       <div style="flex:1;min-width:200px">
-        <div style="font-weight:700;font-size:15px">${p.name}</div>
-        <div class="hint" style="font-size:12px">${dateStr}${timeStr?' \u2022 '+timeStr:''}${p.location?' \u2022 '+p.location:''}</div>
-        ${p.note?`<div class="hint" style="font-size:11px;margin-top:2px">${p.note}</div>`:''}
+        <div style="font-weight:700;font-size:15px">${esc(p.name)}</div>
+        <div class="hint" style="font-size:12px">${esc(dateStr)}${timeStr?' \u2022 '+esc(timeStr):''}${p.location?' \u2022 '+esc(p.location):''}</div>
+        ${p.note?`<div class="hint" style="font-size:11px;margin-top:2px">${esc(p.note)}</div>`:''}
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <a href="moodboard-work.html?id=${p.id}" class="btn small ghost" style="text-decoration:none">Moodboard</a>
-        <button class="btn small ghost" onclick="openDeliveryFull('${p.id}')">Delivery Full</button>
-        ${p.deliveryProjectId ? `<button class="btn small ghost" onclick="fetchShootDrive('${p.id}','${p.deliveryProjectId}')">Fetch</button>` : ''}
-        <button class="btn small ghost" onclick="openDelivery('${p.id}')">Delivery Edited</button>
-        <button class="btn small ghost" onclick="editProject('${p.id}')">Edit</button>
-        <button class="btn small ghost" style="border-color:#FECACA;color:#B91C1C" onclick="deleteProject('${p.id}')">Hapus</button>
+        <a href="moodboard-work.html?id=${esc(p.id)}" class="btn small ghost" style="text-decoration:none">Moodboard</a>
+        <button class="btn small ghost" onclick="openDeliveryFull('${esc(p.id)}')">Delivery Full</button>
+        ${p.deliveryProjectId ? `<button class="btn small ghost" onclick="fetchShootDrive('${esc(p.id)}','${esc(p.deliveryProjectId)}')">Fetch</button>` : ''}
+        <button class="btn small ghost" onclick="openDelivery('${esc(p.id)}')">Delivery Edited</button>
+        <button class="btn small ghost" onclick="editProject('${esc(p.id)}')">Edit</button>
+        <button class="btn small ghost" style="border-color:#FECACA;color:#B91C1C" onclick="deleteProject('${esc(p.id)}')">Hapus</button>
       </div>
     </div>`;
   }).join('');

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Granads — Booking</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{--granads-primary:#8C0009;--granads-gold:#C9A86A;--granads-dark:#1A1A1E;--granads-cream:#FFF9F0;--border:#E8E0D6;--muted:#6B7280}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Space Grotesk',system-ui,sans-serif}
+body{background:var(--granads-cream);color:var(--granads-dark)}
+.navbar{position:fixed;top:0;left:0;right:0;z-index:50;padding:14px 28px;display:flex;justify-content:space-between;align-items:center;background:rgba(255,249,240,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.nav-brand img{height:28px;width:auto;object-fit:contain}
+.nav-links{display:flex;gap:6px}
+.nav-links a{text-decoration:none;font-size:13px;padding:7px 13px;border-radius:999px;color:var(--granads-dark);font-weight:500}
+.nav-links a:hover,.nav-links a.active{background:var(--granads-primary);color:white}
+.container{max-width:1100px;margin:0 auto;padding:90px 24px 40px}
+.layout{display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:start}
+@media(max-width:900px){.layout{grid-template-columns:1fr}}
+.card{background:white;border:1px solid var(--border);border-radius:16px;padding:22px}
+.card h1{font-size:22px;font-weight:800;margin-bottom:6px}
+.card .hint{font-size:12px;color:var(--muted);line-height:1.5}
+label{font-size:12px;font-weight:600;margin-bottom:6px;display:block;color:#374151}
+input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:13px;background:white;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--granads-primary);box-shadow:0 0 0 3px rgba(140,0,9,.08)}
+textarea{resize:vertical;min-height:72px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.grid2{grid-template-columns:1fr}}
+.btn{padding:11px 18px;border-radius:999px;font-size:13px;font-weight:700;border:none;cursor:pointer;transition:.2s}
+.btn-primary{background:var(--granads-primary);color:white;width:100%}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.btn-ghost{background:white;border:1px solid var(--border)}
+.note{font-size:11px;color:#92400E;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:8px 10px;margin-top:6px}
+.error{font-size:11px;color:#B91C1C;margin-top:4px;display:none}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;background:var(--border);border-radius:12px;overflow:hidden}
+.cal-head{background:var(--granads-primary);color:white;padding:7px 4px;font-size:10px;font-weight:700;text-align:center;text-transform:uppercase}
+.cal-day{background:white;padding:6px 4px;min-height:62px;font-size:11px;cursor:pointer}
+.cal-day.empty{background:#F9FAFB;cursor:default}
+.cal-day.today{outline:2px solid var(--granads-primary);outline-offset:-2px}
+.cal-day.selected{border:2px solid var(--granads-primary);background:#FFF5F5}
+.cal-day.disabled{background:#F3F4F6;color:#9CA3AF;cursor:not-allowed;opacity:.6}
+.cal-day.booked{opacity:.5}
+.cal-day .num{font-weight:700;margin-bottom:3px}
+.cal-day .dot{font-size:9px;background:var(--granads-primary);color:white;border-radius:4px;padding:1px 4px;display:inline-block;margin-top:2px}
+.month-nav{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.month-nav button{width:30px;height:30px;border:1px solid var(--border);border-radius:8px;background:white;cursor:pointer}
+.month-nav b{font-size:14px}
+.time-opt[disabled]{color:#9CA3AF}
+.simple-footer{text-align:center;padding:22px 24px;border-top:1px solid #E8E0D6;background:var(--granads-cream);color:var(--muted);font-size:12px;margin-top:40px}
+.simple-footer .footer-brand{font-family:Georgia,'Times New Roman',serif;font-size:22px;font-weight:800;color:var(--granads-primary)}
+.simple-footer .footer-brand .footer-copy{font-family:'Space Grotesk',system-ui,sans-serif;font-size:11px;font-weight:400;color:#6B6B6B;margin-left:6px;vertical-align:middle}
+.simple-footer .footer-brand .footer-copy a{color:var(--granads-primary);text-decoration:underline;text-underline-offset:3px;font-weight:600}
+.simple-footer .footer-socials{display:flex;gap:18px;justify-content:center;margin-top:10px}
+.simple-footer .footer-socials svg{width:22px;height:22px;fill:var(--granads-primary)}
+</style>
+</head>
+<body>
+<nav class="navbar">
+  <a href="/portfolio" class="nav-brand"><img src="assets/logo/logo.png" alt="Granads"/></a>
+  <div class="nav-links">
+    <a href="/portfolio#porto">Porto</a>
+    <a href="/portfolio#jadwal">Jadwal</a>
+    <a href="/book" class="active">Book</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="layout">
+    <div class="card">
+      <h1>book @granadds</h1>
+      <p class="hint" style="margin-bottom:18px">Isi form di bawah, admin akan konfirmasi tanggal & waktu via WhatsApp.</p>
+      <form id="bookingForm" style="display:grid;gap:14px">
+        <div>
+          <label>Nama *</label>
+          <input id="fName" required placeholder="Nama lengkap"/>
+        </div>
+        <div>
+          <label>No WA *</label>
+          <input id="fWa" required type="tel" placeholder="08xxxxxxxxxx" pattern="08[0-9]{8,11}"/>
+        </div>
+        <div class="grid2">
+          <div>
+            <label>Tanggal *</label>
+            <input id="fDate" required type="date"/>
+            <div class="note">* Tanggal dan waktu akan dikonfirmasi kembali oleh admin.</div>
+            <div id="dateWarn" class="error"></div>
+          </div>
+          <div>
+            <label>Waktu *</label>
+            <select id="fTime" required>
+              <option value="">Pilih jam</option>
+            </select>
+            <div id="timeWarn" class="error"></div>
+          </div>
+        </div>
+        <div>
+          <label>Lokasi</label>
+          <input id="fLocation" placeholder="Alamat / lokasi foto"/>
+        </div>
+        <div class="grid2">
+          <div>
+            <label>Jumlah Orang</label>
+            <input id="fPeople" type="number" min="1" placeholder="cth: 2"/>
+          </div>
+          <div>
+            <label>Konsep Foto</label>
+            <input id="fConcept" placeholder="cth: Prewedding casual, Studio"/>
+          </div>
+        </div>
+        <div>
+          <label>Kebutuhan Lainnya</label>
+          <textarea id="fNeeds" placeholder="cth: Cetak album, makeup, kostum..."></textarea>
+        </div>
+        <div>
+          <label>Catatan Khusus</label>
+          <textarea id="fNote" placeholder="Hal lain yang perlu kami tahu..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" id="btnSubmit">Kirim Pesanan</button>
+        <div id="formMsg" class="hint" style="display:none;text-align:center"></div>
+      </form>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="month-nav">
+          <button onclick="changeMonth(-1)">‹</button>
+          <b id="monthTitle"></b>
+          <button onclick="changeMonth(1)">›</button>
+          <button class="btn-ghost" style="margin-left:auto;padding:6px 10px;font-size:11px;border-radius:8px" onclick="goToday()">Hari ini</button>
+        </div>
+        <div class="calendar" id="calendar"></div>
+        <p class="hint" style="margin-top:10px">Klik tanggal di kalender untuk isi form. Jam yang sudah terisi tidak bisa dipilih (sinkron agenda).</p>
+        <div id="dayInfo" class="hint" style="margin-top:8px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="simple-footer">
+  <div class="footer-brand">Granads. <span class="footer-copy">© 2026 <a href="https://instagram.com/granads" target="_blank">Granads</a></span></div>
+  <div class="footer-socials">
+    <a href="https://wa.me/6281234567890" target="_blank" aria-label="WA"><svg viewBox="0 0 24 24"><path d="M12.04 2.02c-5.46 0-9.91 4.44-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.44 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2.02Zm0 16.6a8.2 8.2 0 0 1-4.18-1.14l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.32A8.2 8.2 0 0 1 12.04 3.22c2.2 0 4.27.86 5.82 2.41a8.18 8.18 0 0 1 2.42 5.82c0 4.54-3.69 8.17-8.24 8.17Zm4.52-6.16c-.26-.13-1.55-.76-1.79-.86-.24-.09-.41-.13-.58.14-.17.26-.67.86-.82 1.03-.15.18-.31.2-.57.07-.26-.13-1.1-.4-2.1-1.29-.78-.69-1.3-1.55-1.45-1.81-.15-.26-.02-.4.11-.53.11-.11.26-.3.39-.45.13-.15.17-.26.26-.43.09-.17.04-.32-.02-.45-.07-.13-.58-1.4-.8-1.92-.2-.49-.42-.43-.58-.44h-.5c-.17 0-.45.06-.69.32-.23.26-.9.88-.9 2.15 0 1.27.93 2.5 1.06 2.67.13.17 1.83 2.79 4.44 3.91.62.27 1.1.43 1.48.55.62.2 1.18.17 1.63.1.5-.07 1.55-.63 1.76-1.25.21-.61.21-1.13.15-1.24-.06-.1-.24-.17-.5-.3Z"/></svg></a>
+    <a href="https://instagram.com/granads" target="_blank" aria-label="IG"><svg viewBox="0 0 24 24"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.46.18.87.42 1.28.83.41.41.65.82.83 1.28.16.43.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23a2.9 2.9 0 0 1-.83 1.28 2.9 2.9 0 0 1-1.28.83c-.43.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a2.9 2.9 0 0 1-1.28-.83 2.9 2.9 0 0 1-.83-1.28c-.16-.43-.36-1.06-.41-2.23C2.16 15.58 2.15 15.2 2.15 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.18-.46.42-.87.83-1.28.41-.41.82-.65 1.28-.83.43-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16ZM12 0C8.74 0 8.33.01 7.05.07 5.77.13 4.9.33 4.14.63A4.9 4.9 0 0 0 2 2a4.9 4.9 0 0 0-1.37 2.14c-.3.76-.5 1.63-.56 2.91C0 8.33 0 8.74 0 12s.01 3.67.07 4.95c.06 1.28.26 2.15.56 2.91A4.9 4.9 0 0 0 2 22a4.9 4.9 0 0 0 2.14 1.37c.76.3 1.63.5 2.91.56C8.33 24 8.74 24 12 24s3.67-.01 4.95-.07c1.28-.06 2.15-.26 2.91-.56A4.9 4.9 0 0 0 22 22a4.9 4.9 0 0 0 1.37-2.14c.3-.76.5-1.63.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.28-.26-2.15-.56-2.91A4.9 4.9 0 0 0 22 2a4.9 4.9 0 0 0-2.14-1.37c-.76-.3-1.63-.5-2.91-.56C15.67.01 15.26 0 12 0Zm0 5.84A6.16 6.16 0 1 0 12 18.16 6.16 6.16 0 0 0 12 5.84Zm0 10.16A4 4 0 1 1 12 7.99a4 4 0 0 1 0 8.01Zm6.41-10.4a1.44 1.44 0 1 1-2.88 0 1.44 1.44 0 0 1 2.88 0Z"/></svg></a>
+  </div>
+</footer>
+
+<script>
+let schedules=[];
+let currentDate=new Date();
+let selectedDate='';
+function getMinDateStr(){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+3);return d.toISOString().slice(0,10)}
+const timeSlots=[];for(let h=7;h<=20;h++){for(let m of [0,30]){timeSlots.push(String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'))}}
+function buildTimeOptions(disabledSet){
+  const sel=document.getElementById('fTime');
+  sel.innerHTML='<option value="">Pilih jam</option>'+timeSlots.map(t=>{
+    const dis=disabledSet.has(t);
+    return `<option value="${t}" ${dis?'disabled':''}>${t}${dis?' — Booked':''}</option>`;
+  }).join('');
+}
+async function init(){
+  try{schedules=await fetch('/api/public/schedules').then(r=>r.json())}catch{schedules=[]}
+  const min=getMinDateStr();document.getElementById('fDate').min=min;
+  renderCalendar();updateDayInfo();buildTimeOptions(new Set());
+  document.getElementById('fDate').addEventListener('change', onDateChange);
+  document.getElementById('fTime').addEventListener('change', validateTime);
+}
+function onDateChange(){
+  const d=document.getElementById('fDate').value;
+  const min=getMinDateStr();
+  if(d && d < min){
+    document.getElementById('dateWarn').textContent=`Minimal H+3 (paling cepat ${min}).`;document.getElementById('dateWarn').style.display='block';
+    document.getElementById('fDate').value='';selectedDate='';renderCalendar();updateDayInfo();return;
+  } else document.getElementById('dateWarn').style.display='none';
+  selectedDate=d;
+  renderCalendar();
+  const times=getBookedTimes(d);
+  buildTimeOptions(new Set(times));
+  // keep selected if still valid
+  const cur=document.getElementById('fTime').value;
+  if(cur && times.includes(cur)){
+    document.getElementById('timeWarn').textContent='Jam ini sudah booked, pilih jam lain.';document.getElementById('timeWarn').style.display='block';
+    document.getElementById('fTime').value='';
+  } else document.getElementById('timeWarn').style.display='none';
+  updateDayInfo();
+}
+function validateTime(){
+  const d=document.getElementById('fDate').value;
+  const t=document.getElementById('fTime').value;
+  if(!d||!t) return;
+  if(getBookedTimes(d).includes(t)){
+    document.getElementById('timeWarn').textContent='Jam ini sudah booked, pilih jam lain — admin akan konfirmasi kembali.';document.getElementById('timeWarn').style.display='block';
+    document.getElementById('fTime').value='';
+  } else document.getElementById('timeWarn').style.display='none';
+}
+function getBookedTimes(dateStr){
+  return schedules.filter(s=>s.date===dateStr).map(s=>(s.time||'').slice(0,5)).filter(Boolean);
+}
+function renderCalendar(){
+  const year=currentDate.getFullYear(), month=currentDate.getMonth();
+  const months=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  document.getElementById('monthTitle').textContent=months[month]+' '+year;
+  const firstDay=new Date(year,month,1).getDay();
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const today=new Date();
+  let html=['Min','Sen','Sel','Rab','Kam','Jum','Sab'].map(h=>`<div class="cal-head">${h}</div>`).join('');
+  for(let i=0;i<firstDay;i++) html+=`<div class="cal-day empty"></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const dateStr=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday=today.getFullYear()===year&&today.getMonth()===month&&today.getDate()===d;
+    const isSelected=selectedDate===dateStr;
+    const isDisabled=dateStr < getMinDateStr();
+    const daySched=schedules.filter(s=>s.date===dateStr);
+    const hasTimes=daySched.map(s=>`<span class="dot">${(s.time||'').slice(0,5)} Booked</span>`).join('');
+    if(isDisabled){
+      html+=`<div class="cal-day disabled${isToday?' today':''}"><div class="num">${d}</div></div>`;
+    } else {
+      html+=`<div class="cal-day${isToday?' today':''}${isSelected?' selected':''}" onclick="pickDate('${dateStr}')"><div class="num">${d}</div>${hasTimes}</div>`;
+    }
+  }
+  document.getElementById('calendar').innerHTML=html;
+}
+function updateDayInfo(){
+  const d=document.getElementById('fDate').value;
+  if(!d){document.getElementById('dayInfo').textContent='';return}
+  const times=getBookedTimes(d);
+  document.getElementById('dayInfo').textContent=times.length?`Ter-booked jam: ${times.join(', ')} — jam tersebut disabled di pilihan.`:'Tanggal ini masih kosong, semua jam tersedia.';
+}
+function pickDate(dateStr){
+  if(dateStr < getMinDateStr()) return;
+  document.getElementById('fDate').value=dateStr;
+  selectedDate=dateStr;
+  onDateChange();
+}
+function changeMonth(d){currentDate.setMonth(currentDate.getMonth()+d);renderCalendar()}
+function goToday(){currentDate=new Date();renderCalendar()}
+document.getElementById('bookingForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const payload={
+    name:document.getElementById('fName').value.trim(),
+    wa:document.getElementById('fWa').value.trim(),
+    date:document.getElementById('fDate').value,
+    time:document.getElementById('fTime').value,
+    location:document.getElementById('fLocation').value.trim(),
+    people:document.getElementById('fPeople').value.trim(),
+    concept:document.getElementById('fConcept').value.trim(),
+    needs:document.getElementById('fNeeds').value.trim(),
+    note:document.getElementById('fNote').value.trim()
+  };
+  if(!payload.name||!payload.wa||!payload.date||!payload.time) return;
+  if(payload.date < getMinDateStr()){document.getElementById('dateWarn').textContent=`Minimal H+3 (paling cepat ${getMinDateStr()}).`;document.getElementById('dateWarn').style.display='block';return;}
+  if(getBookedTimes(payload.date).includes(payload.time)){
+    document.getElementById('timeWarn').textContent='Jam ini sudah booked, pilih jam lain.';document.getElementById('timeWarn').style.display='block';return;
+  }
+  const btn=document.getElementById('btnSubmit');btn.disabled=true;btn.textContent='Mengirim...';
+  try{
+    const r=await fetch('/api/bookings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const j=await r.json();
+    if(!r.ok) throw new Error(j.error||'Gagal');
+    document.getElementById('formMsg').style.display='block';document.getElementById('formMsg').style.color='#065F46';document.getElementById('formMsg').textContent='Pesanan terkirim! Admin akan konfirmasi via WA.';
+    document.getElementById('bookingForm').reset();buildTimeOptions(new Set());updateDayInfo();
+  }catch(err){
+    document.getElementById('formMsg').style.display='block';document.getElementById('formMsg').style.color='#B91C1C';document.getElementById('formMsg').textContent=err.message;
+  }finally{btn.disabled=false;btn.textContent='Kirim Pesanan'}
+});
+init();
+</script>
+</body>
+</html>

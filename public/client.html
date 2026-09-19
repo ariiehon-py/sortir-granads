@@ -157,10 +157,11 @@ async function init(){
     setupKeys();
     setupSwipe();
   }catch(e){
-    document.getElementById('loading').innerHTML = `<div class="card" style="max-width:520px;margin:0 auto;text-align:center"><h3>Error</h3><p class="hint">${e.message}</p></div>`;
+    document.getElementById('loading').innerHTML = `<div class="card" style="max-width:520px;margin:0 auto;text-align:center"><h3>Error</h3><p class="hint">${esc(e.message)}</p></div>`;
   }
 }
 
+function esc(s){ return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function selVal(v){ if(v==null) return 0; if(typeof v==='object') return v.v ?? v.value ?? 0; return Number(v)||0; }
 function selNote(v){ if(typeof v==='object') return v.note ?? v.comment ?? ''; return ''; }
 function filteredPhotos(){
@@ -196,17 +197,17 @@ function render(){
     const cls = v===1?'selected':v===2?'considered':'';
     const dot = v===1?'<span class="status-dot s1">DIPILIH</span>':v===2?'<span class="status-dot s2">RAGU</span>':'';
     const isChecked = checked.has(ph.id);
-    const hasNote = (v===1 && note) ? `<span class="note-indicator" title="${note.replace(/"/g,'&quot;')}">📝 ada catatan</span>` : '';
-    const noteInput = v===1 ? `<div class="photo-note-wrap" onclick="event.stopPropagation()"><input type="text" placeholder="Catatan (cerahkan, crop...)" value="${note.replace(/"/g,'&quot;')}" oninput="setNote('${ph.id}', this.value)" onfocus="focusedId='${ph.id}'" maxlength="500"/></div>` : '';
-    return `<div class="photo-card ${cls}" data-id="${ph.id}" onmouseenter="focusedId='${ph.id}'" onclick="openLightbox('${ph.id}')">
-      <img src="${ph.url}" loading="lazy" onerror="this.src='https://via.placeholder.com/400x300?text=${encodeURIComponent(ph.filename)}'"/>
-      <div class="check ${isChecked?'checked':''}" onclick="event.stopPropagation();toggleCheck('${ph.id}')">${isChecked?'✓':''}</div>
+    const hasNote = (v===1 && note) ? `<span class="note-indicator" title="${esc(note)}">📝 ada catatan</span>` : '';
+    const noteInput = v===1 ? `<div class="photo-note-wrap" onclick="event.stopPropagation()"><input type="text" placeholder="Catatan (cerahkan, crop...)" value="${esc(note)}" oninput="setNote('${esc(ph.id)}', this.value)" onfocus="focusedId='${esc(ph.id)}'" maxlength="500"/></div>` : '';
+    return `<div class="photo-card ${cls}" data-id="${esc(ph.id)}" onmouseenter="focusedId='${esc(ph.id)}'" onclick="openLightbox('${esc(ph.id)}')">
+      <img src="${esc(ph.url)}" loading="lazy" onerror="this.src='https://via.placeholder.com/400x300?text=${encodeURIComponent(ph.filename)}'"/>
+      <div class="check ${isChecked?'checked':''}" onclick="event.stopPropagation();toggleCheck('${esc(ph.id)}')">${isChecked?'✓':''}</div>
       ${dot}
       ${hasNote}
-      <div class="photo-name" onclick="event.stopPropagation()">${ph.filename}</div>
+      <div class="photo-name" onclick="event.stopPropagation()">${esc(ph.filename)}</div>
       <div class="card-actions" onclick="event.stopPropagation()">
-        <button type="button" class="btn-1 ${v===1?'active':''}" onclick="setSelection('${ph.id}',1)">PILIH</button>
-        <button type="button" class="btn-2 ${v===2?'active':''}" onclick="setSelection('${ph.id}',2)">RAGU</button>
+        <button type="button" class="btn-1 ${v===1?'active':''}" onclick="setSelection('${esc(ph.id)}',1)">PILIH</button>
+        <button type="button" class="btn-2 ${v===2?'active':''}" onclick="setSelection('${esc(ph.id)}',2)">RAGU</button>
       </div>
       ${noteInput}
     </div>`;

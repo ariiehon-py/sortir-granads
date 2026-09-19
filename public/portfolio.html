@@ -18,11 +18,22 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Space Grotesk',system-ui,sans-serif}
 html{scroll-behavior:smooth}
+html{scrollbar-gutter:stable}
 body{background:var(--granads-cream);color:var(--granads-dark);overflow-x:hidden}
+/* syahdu scroll transitions */
+@media (prefers-reduced-motion: no-preference){
+  html{scroll-behavior:smooth}
+  .reveal{opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(0.22,1,0.36,1), transform .9s cubic-bezier(0.22,1,0.36,1)}
+  .reveal.in{opacity:1;transform:none}
+  .hero h1{animation:heroIn .9s cubic-bezier(0.22,1,0.36,1) both}
+  @keyframes heroIn{from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:none}}
+  .show-card{transition:transform .6s cubic-bezier(0.22,1,0.36,1), box-shadow .4s ease}
+}
 
 /* NAV */
-.navbar{position:fixed;top:0;left:0;right:0;z-index:50;padding:14px 28px;display:flex;justify-content:space-between;align-items:center;transition:.3s}
-.navbar.scrolled{background:rgba(255,249,240,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.navbar{position:fixed;top:0;left:0;right:0;z-index:50;padding:14px 28px;display:flex;justify-content:space-between;align-items:center;transition:background .5s ease, backdrop-filter .5s ease, transform .4s ease, border-color .4s ease}
+.navbar.scrolled{background:rgba(255,249,240,.96);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);box-shadow:0 4px 24px rgba(0,0,0,.06)}
+.navbar.hide{transform:translateY(-100%)}
 .nav-brand{font-weight:800;font-size:15px;letter-spacing:.12em;color:var(--granads-primary)}
 .nav-brand span{color:var(--granads-gold)}
 .nav-links{display:flex;gap:6px}
@@ -30,8 +41,9 @@ body{background:var(--granads-cream);color:var(--granads-dark);overflow-x:hidden
 .nav-links a:hover{background:var(--granads-primary);color:white}
 @media(max-width:768px){.navbar{padding:10px 14px}.nav-links a{padding:6px 9px;font-size:11px}}
 
-/* FIRST VIEWPORT: compact hero + showcase, no scroll on desktop */
-.first{min-height:100svh;display:flex;flex-direction:column;justify-content:center;padding-top:64px}
+/* FIRST VIEWPORT: hero + showcase full — bawahin dikit */
+.first{min-height:100svh;display:flex;flex-direction:column;justify-content:flex-start;padding-top:72px;padding-bottom:0}
+.hero{margin-bottom:28px}
 .hero{padding:10px 24px 0;text-align:center}
 .hero-tag{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--granads-gold);font-weight:700;margin-bottom:8px}
 .hero h1{font-size:clamp(18px,2.6vw,28px);font-weight:600;line-height:1.45;max-width:640px;margin:0 auto;color:var(--granads-dark)}
@@ -41,25 +53,29 @@ body{background:var(--granads-cream);color:var(--granads-dark);overflow-x:hidden
 .btn-primary{background:var(--granads-primary);color:white}
 .btn-outline{background:transparent;color:var(--granads-primary);border:1.5px solid var(--granads-primary)}
 
-/* SHOWCASE — terang, 3 foto numpuk, bisa digeser */
-.showcase{position:relative;display:flex;flex-direction:column;margin-top:10px}
-.show-viewport{position:relative;overflow:hidden;padding:14px 0 2px;max-width:1100px;margin:0 auto;width:100%}
-.show-row{display:flex;align-items:center;justify-content:center;overflow-x:auto;padding:10px 24px 14px;scroll-snap-type:x mandatory;scrollbar-width:none;gap:0}
+/* SHOWCASE — 10 kartu, mentok kanan-kiri, lebih besar & turun biar bawah ga kosong */
+.showcase{position:relative;display:flex;flex-direction:column;margin-top:42px;flex:0 0 auto}
+.show-viewport{position:relative;overflow:hidden;padding:0 0 12px;max-width:100%;margin:0;width:100%}
+.show-row{display:flex;align-items:stretch;justify-content:flex-start;overflow-x:auto;padding:8px 0 20px 0;scroll-snap-type:x mandatory;scrollbar-width:none;gap:0}
 .show-row::-webkit-scrollbar{display:none}
-.show-card{flex:0 0 clamp(200px,30vw,300px);scroll-snap-align:center;border-radius:10px;overflow:hidden;position:relative;box-shadow:0 10px 28px rgba(0,0,0,.12);transition:transform .25s}
-.show-card + .show-card{margin-left:-56px}
-.show-card:nth-child(odd){transform:rotate(-2deg) translateY(8px)}
-.show-card:nth-child(even){transform:rotate(1.5deg)}
+.show-card{flex:0 0 clamp(260px,21vw,320px);scroll-snap-align:center;border-radius:12px;overflow:hidden;position:relative;box-shadow:0 10px 28px rgba(0,0,0,.12);transition:transform .25s}
+.show-card + .show-card{margin-left:-28px}
+.show-card:nth-child(odd){transform:rotate(-1.5deg) translateY(6px)}
+.show-card:nth-child(even){transform:rotate(1.2deg)}
 .show-card:hover{transform:rotate(0) translateY(-4px) scale(1.02);z-index:10}
-.show-card .ph{width:100%;height:300px;display:flex;align-items:flex-end;padding:14px;font-weight:800;font-size:22px;line-height:1.1;color:rgba(255,255,255,.92)}
+.show-card .ph{width:100%;height:clamp(420px,46vh,500px);display:flex;align-items:flex-end;padding:16px;font-weight:800;font-size:20px;line-height:1.1;color:rgba(255,255,255,.92)}
 .show-card small{display:block;font-size:11px;font-weight:500;opacity:.85;margin-top:4px}
 .show-arrow{position:absolute;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:white;cursor:pointer;font-size:18px;z-index:20;box-shadow:0 4px 14px rgba(0,0,0,.1)}
 .show-arrow:hover{background:var(--granads-primary);color:white;border-color:var(--granads-primary)}
-#showPrev{left:10px}#showNext{right:10px}
+#showPrev{left:12px}#showNext{right:12px}
+@media(max-width:1100px){
+  .show-card{flex-basis:clamp(260px,32vw,340px)}
+  .show-card .ph{height:360px}
+}
 @media(max-width:768px){
-  .show-card{flex-basis:56vw}
-  .show-card + .show-card{margin-left:-40px}
-  .show-card .ph{height:210px;font-size:18px}
+  .show-card{flex-basis:62vw}
+  .show-card + .show-card{margin-left:-28px}
+  .show-card .ph{height:300px;font-size:18px}
 }
 
 /* SECTIONS */
@@ -104,15 +120,17 @@ section{padding:72px 24px}
 .price-card li::before{content:'✓';color:var(--granads-primary);font-weight:700;font-size:12px}
 @media(max-width:768px){.pricing-grid{grid-template-columns:1fr}}
 
-/* CONTACT */
-.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px}
-.contact-card{background:white;border:1px solid var(--border);border-radius:16px;padding:20px;text-decoration:none;color:inherit;transition:.2s;display:flex;align-items:center;gap:14px}
-.contact-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.08)}
-.contact-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-@media(max-width:768px){.contact-grid{grid-template-columns:1fr}}
-
-footer{text-align:center;padding:36px 24px;border-top:1px solid var(--border);color:var(--muted);font-size:12px}
-footer .brand{font-weight:800;color:var(--granads-primary);letter-spacing:.1em}
+/* IG GRID — dinamis, embed */
+#igGrid .instagram-media{max-width:100%!important;min-width:0!important;width:100%!important;margin:0 auto!important}
+/* FOOTER SIMPLE — like screenshot, keep it simple + ig/wa */
+.simple-footer{text-align:center;padding:22px 24px;border-top:1px solid #E8E0D6;background:var(--granads-cream);color:var(--muted);font-size:12px}
+.simple-footer .footer-brand{font-family:Georgia,'Times New Roman',serif;font-size:22px;font-weight:800;color:var(--granads-primary);letter-spacing:-.02em;line-height:1}
+.simple-footer .footer-brand .footer-copy{font-family:'Space Grotesk',system-ui,sans-serif;font-size:11px;font-weight:400;color:#6B6B6B;letter-spacing:0;margin-left:6px;vertical-align:middle}
+.simple-footer .footer-brand .footer-copy a{color:var(--granads-primary);text-decoration:underline;text-underline-offset:3px;font-weight:600}
+.simple-footer .footer-socials{display:flex;gap:18px;justify-content:center;align-items:center;margin-top:12px}
+.simple-footer .footer-socials a{display:inline-flex;align-items:center;justify-content:center;background:transparent;border:none;text-decoration:none;line-height:0;transition:.2s;opacity:1}
+.simple-footer .footer-socials a:hover{opacity:.7;transform:translateY(-1px)}
+.simple-footer .footer-socials svg{width:22px;height:22px;fill:var(--granads-primary);display:block}
 </style>
 </head>
 <body>
@@ -122,20 +140,16 @@ footer .brand{font-weight:800;color:var(--granads-primary);letter-spacing:.1em}
   <div class="nav-links">
     <a href="#porto">Porto</a>
     <a href="#jadwal">Jadwal</a>
-    <a href="#kontak">Kontak</a>
+    <a href="/book">Book</a>
   </div>
 </nav>
 
 <div class="first">
   <div class="hero">
-    <div class="hero-tag">Granads Photography</div>
     <h1>Setiap foto punya cerita. Kami hadir untuk memastikan <b>cerita Anda terabadikan dengan sempurna.</b></h1>
-    <div class="hero-cta">
-      <a href="#jadwal" class="btn btn-primary">Lihat Jadwal</a>
-    </div>
   </div>
 
-  <div class="showcase" id="porto">
+  <div class="showcase reveal in" id="porto">
     <div class="show-viewport">
       <button class="show-arrow" id="showPrev" aria-label="prev">‹</button>
       <div class="show-row" id="showRow"></div>
@@ -144,11 +158,9 @@ footer .brand{font-weight:800;color:var(--granads-primary);letter-spacing:.1em}
   </div>
 </div>
 
-<section id="jadwal">
+<section id="jadwal" class="reveal">
   <div class="section-inner">
-    <div class="section-label">Jadwal</div>
     <h2 class="section-title">Agenda Kami</h2>
-    <p class="section-desc">Kalender yang sama dengan workspace internal — otomatis tersinkron.</p>
     <div class="cal-top">
       <div class="month-nav">
         <button onclick="changeMonth(-1)">‹</button>
@@ -162,43 +174,80 @@ footer .brand{font-weight:800;color:var(--granads-primary);letter-spacing:.1em}
   </div>
 </section>
 
-<section id="kontak">
-  <div class="section-inner">
-    <div class="section-label">Kontak</div>
-    <h2 class="section-title">Hubungi Kami</h2>
-    <div class="contact-grid">
-      <a href="https://wa.me/6281234567890" target="_blank" class="contact-card">
-        <div class="contact-icon" style="background:#DCFCE7">💬</div>
-        <div><h4 style="font-size:14px">WhatsApp</h4><p class="hint">Chat langsung</p></div>
-      </a>
-      <a href="https://instagram.com/granads" target="_blank" class="contact-card">
-        <div class="contact-icon" style="background:#FCE7F3">📸</div>
-        <div><h4 style="font-size:14px">Instagram</h4><p class="hint">@granads</p></div>
-      </a>
-    </div>
+<section id="ig" class="reveal" style="padding:28px 24px 32px">
+  <div class="section-inner" style="max-width:1100px">
+    <div id="igGrid" style="display:flex;flex-wrap:wrap;justify-content:center;gap:16px;align-items:start"></div>
+    <div id="igHint" class="hint" style="margin-top:10px;text-align:center"></div>
   </div>
 </section>
 
-<footer><p><span class="brand">GRANADS.</span> &copy; 2026</p></footer>
+<footer class="simple-footer reveal">
+  <div class="footer-brand">Granads. <span class="footer-copy">© 2026 <a href="https://instagram.com/granads" target="_blank">Granads</a></span></div>
+  <div class="footer-socials">
+    <a href="https://wa.me/6281234567890" target="_blank" aria-label="WhatsApp" title="WhatsApp">
+      <!-- WA - official glyph, bolder & lebih jelas di size kecil -->
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.04 2.02c-5.46 0-9.91 4.44-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.44 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2.02Zm0 16.6a8.2 8.2 0 0 1-4.18-1.14l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.32A8.2 8.2 0 0 1 12.04 3.22c2.2 0 4.27.86 5.82 2.41a8.18 8.18 0 0 1 2.42 5.82c0 4.54-3.69 8.17-8.24 8.17Zm4.52-6.16c-.26-.13-1.55-.76-1.79-.86-.24-.09-.41-.13-.58.14-.17.26-.67.86-.82 1.03-.15.18-.31.2-.57.07-.26-.13-1.1-.4-2.1-1.29-.78-.69-1.3-1.55-1.45-1.81-.15-.26-.02-.4.11-.53.11-.11.26-.3.39-.45.13-.15.17-.26.26-.43.09-.17.04-.32-.02-.45-.07-.13-.58-1.4-.8-1.92-.2-.49-.42-.43-.58-.44h-.5c-.17 0-.45.06-.69.32-.23.26-.9.88-.9 2.15 0 1.27.93 2.5 1.06 2.67.13.17 1.83 2.79 4.44 3.91.62.27 1.1.43 1.48.55.62.2 1.18.17 1.63.1.5-.07 1.55-.63 1.76-1.25.21-.61.21-1.13.15-1.24-.06-.1-.24-.17-.5-.3Z"/></svg>
+    </a>
+    <a href="https://instagram.com/granads" target="_blank" aria-label="Instagram" title="Instagram">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.46.18.87.42 1.28.83.41.41.65.82.83 1.28.16.43.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23a2.9 2.9 0 0 1-.83 1.28 2.9 2.9 0 0 1-1.28.83c-.43.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a2.9 2.9 0 0 1-1.28-.83 2.9 2.9 0 0 1-.83-1.28c-.16-.43-.36-1.06-.41-2.23C2.16 15.58 2.15 15.2 2.15 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.18-.46.42-.87.83-1.28.41-.41.82-.65 1.28-.83.43-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16ZM12 0C8.74 0 8.33.01 7.05.07 5.77.13 4.9.33 4.14.63A4.9 4.9 0 0 0 2 2a4.9 4.9 0 0 0-1.37 2.14c-.3.76-.5 1.63-.56 2.91C0 8.33 0 8.74 0 12s.01 3.67.07 4.95c.06 1.28.26 2.15.56 2.91A4.9 4.9 0 0 0 2 22a4.9 4.9 0 0 0 2.14 1.37c.76.3 1.63.5 2.91.56C8.33 24 8.74 24 12 24s3.67-.01 4.95-.07c1.28-.06 2.15-.26 2.91-.56A4.9 4.9 0 0 0 22 22a4.9 4.9 0 0 0 1.37-2.14c.3-.76.5-1.63.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.28-.26-2.15-.56-2.91A4.9 4.9 0 0 0 22 2a4.9 4.9 0 0 0-2.14-1.37c-.76-.3-1.63-.5-2.91-.56C15.67.01 15.26 0 12 0Zm0 5.84A6.16 6.16 0 1 0 12 18.16 6.16 6.16 0 0 0 12 5.84Zm0 10.16A4 4 0 1 1 12 7.99a4 4 0 0 1 0 8.01Zm6.41-10.4a1.44 1.44 0 1 1-2.88 0 1.44 1.44 0 0 1 2.88 0Z"/></svg>
+    </a>
+  </div>
+</footer>
 
 <script>
+// syahdu: navbar hide on scroll down, show on up + reveal observer
+let lastY=window.scrollY;
 window.addEventListener('scroll',()=>{
-  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 40);
-});
+  const y=window.scrollY;
+  const nav=document.getElementById('navbar');
+  nav.classList.toggle('scrolled', y > 40);
+  if(y>200 && y>lastY+6) nav.classList.add('hide');
+  else nav.classList.remove('hide');
+  lastY=y;
+},{passive:true});
+const ro=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('in') })
+},{threshold:0.12, rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.reveal').forEach(el=> ro.observe(el));
 
-// --- SHOWCASE (placeholder, ganti dengan foto asli nanti) ---
-const shots = [
+// --- SHOWCASE (dari /api/showcase — upload via Owner Dashboard) ---
+const fallbackShots = [
   {t:'THE CADO', s:'Co-Founder Portrait', bg:'linear-gradient(135deg,#0E9F6E,#D4F565)', c:'#08351f'},
   {t:'IRIDESCENT', s:'Creative Print', bg:'linear-gradient(135deg,#c084fc,#f0abfc,#fef08a)', c:'#3b0764'},
   {t:'LIGHT / GROVE', s:'Packaging', bg:'linear-gradient(135deg,#fb7185,#fdba74)', c:'#431407'},
   {t:'FLORE', s:'Editorial', bg:'linear-gradient(135deg,#c4b5fd,#f9a8d4)', c:'#2e1065'},
   {t:'BABA NANA', s:'Brand Shoot', bg:'linear-gradient(135deg,#fde047,#86efac)', c:'#14532d'},
+  {t:'GRANADS STUDIO', s:'Studio Session', bg:'linear-gradient(135deg,#f97316,#fde68a)', c:'#431407'},
+  {t:'MOMENT & LOVE', s:'Wedding Day', bg:'linear-gradient(135deg,#8b5cf6,#ec4899)', c:'#fdf2f8'},
+  {t:'FAMILY FRAME', s:'Family Portrait', bg:'linear-gradient(135deg,#06b6d4,#3b82f6)', c:'#eff6ff'},
+  {t:'GRADUATION', s:'Graduation Shoot', bg:'linear-gradient(135deg,#f59e0b,#10b981)', c:'#064e3b'},
+  {t:'BRAND STORY', s:'Brand Campaign', bg:'linear-gradient(135deg,#ec4899,#8b5cf6)', c:'#faf5ff'},
 ];
-document.getElementById('showRow').innerHTML = shots.map(s=>
-  `<div class="show-card"><div class="ph" style="background:${s.bg};color:${s.c}"><div>${s.t}<small>${s.s}</small></div></div></div>`
-).join('');
-document.getElementById('showPrev').onclick = ()=> document.getElementById('showRow').scrollBy({left:-320,behavior:'smooth'});
-document.getElementById('showNext').onclick = ()=> document.getElementById('showRow').scrollBy({left:320,behavior:'smooth'});
+function escAttr(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+async function loadShowcase(){
+  try{
+    const data = await fetch('/api/showcase').then(r=>r.json());
+    if(Array.isArray(data) && data.length>0){
+      document.getElementById('showRow').innerHTML = data.map(it=>{
+        if(it.url){
+          return `<div class="show-card"><div class="ph" style="background:url('${escAttr(it.url)}') center/cover no-repeat, linear-gradient(135deg,#eee,#ddd)"><div style="background:linear-gradient(transparent,rgba(0,0,0,.55));padding:12px;border-radius:8px">${escAttr(it.title)}<small>${escAttr(it.subtitle||'')}</small></div></div></div>`;
+        }
+        return `<div class="show-card"><div class="ph" style="background:${it.bg||'#eee'};color:${it.c||'#333'}"><div>${escAttr(it.title)}<small>${escAttr(it.subtitle||'')}</small></div></div></div>`;
+      }).join('');
+    } else {
+      document.getElementById('showRow').innerHTML = fallbackShots.map(s=>
+        `<div class="show-card"><div class="ph" style="background:${s.bg};color:${s.c}"><div>${s.t}<small>${s.s}</small></div></div></div>`
+      ).join('');
+    }
+  }catch{
+    document.getElementById('showRow').innerHTML = fallbackShots.map(s=>
+      `<div class="show-card"><div class="ph" style="background:${s.bg};color:${s.c}"><div>${s.t}<small>${s.s}</small></div></div></div>`
+    ).join('');
+  }
+}
+loadShowcase();
+document.getElementById('showPrev').onclick = ()=> document.getElementById('showRow').scrollBy({left:-380,behavior:'smooth'});
+document.getElementById('showNext').onclick = ()=> document.getElementById('showRow').scrollBy({left:380,behavior:'smooth'});
 
 // --- JADWAL: kalender sama kayak workspace (read-only) ---
 let schedules = [];
@@ -221,7 +270,12 @@ function renderCalendar(){
   for(let d=1;d<=daysInMonth;d++){
     const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const isToday = today.getFullYear()===year && today.getMonth()===month && today.getDate()===d;
-    const ev = schedules.filter(s=>s.date===dateStr).map(s=>`<div class="cal-event" title="${s.name}">${s.name}</div>`).join('');
+    const ev = schedules.filter(s=>s.date===dateStr).map(s=>{
+      const t = (s.time||'').slice(0,5);
+      const label = t ? `${t} Booked` : 'Booked';
+      const tip = t ? `${t} Booked` : 'Booked';
+      return `<div class="cal-event" title="${tip}">${label}</div>`;
+    }).join('');
     html += `<div class="cal-day${isToday?' today':''}"><div class="num">${d}</div>${ev}</div>`;
   }
   document.getElementById('calendar').innerHTML = html;
@@ -235,15 +289,48 @@ function renderList(){
   const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
   el.innerHTML = upcoming.map(s=>{
     const d = new Date(s.date+'T'+(s.time||'00:00'));
+    const t = (s.time||'').slice(0,5);
     return `<div class="schedule-item"><div class="info">
-      <div style="font-weight:700;font-size:14px">${s.name}</div>
-      <div class="hint">${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()} • ${s.time||''}${s.location?' • '+s.location:''}</div>
+      <div style="font-weight:700;font-size:14px">${t ? t+' • Booked' : 'Booked'}</div>
+      <div class="hint">${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}${t ? ' • '+t : ''}${s.location?' • '+s.location:''}</div>
     </div></div>`;
   }).join('');
 }
 function changeMonth(d){ currentDate.setMonth(currentDate.getMonth()+d); renderCalendar(); }
 function goToday(){ currentDate = new Date(); renderCalendar(); }
-init();
+function normalizeIg(u){
+  if(!u) return '';
+  const m=u.match(/data-instgrm-permalink="([^"]+)"/);
+  if(m) u=m[1];
+  const href=u.match(/https?:\/\/(www\.)?instagram\.com\/(p|reel|reels|tv)\/[^"'\s<>?]+/);
+  if(href) u=href[0];
+  else {
+    const any=u.match(/https?:\/\/(www\.)?instagram\.com\/[^"'\s<>?]+/);
+    if(any) u=any[0];
+  }
+  u=u.split('?')[0].split('#')[0];
+  if(u && !u.endsWith('/')) u+='/';
+  u=u.replace(/^http:/,'https:').replace(/^https:\/\/instagram\.com/,'https://www.instagram.com');
+  return u;
+}
+async function loadIg(){
+  const grid=document.getElementById('igGrid'); const hint=document.getElementById('igHint');
+  const section=document.getElementById('ig');
+  try{
+    const data=await fetch('/api/ig-posts').then(r=>r.json());
+    const links=(data.links||[]).filter(Boolean);
+    if(!links.length){ section.style.display='none'; return; }
+    section.style.display='block';
+    grid.innerHTML=links.map((u,i)=>{
+      const permalink=normalizeIg(u);
+      if(!permalink || !/instagram\.com/.test(permalink)) return `<a href="${u}" target="_blank" style="flex:0 1 340px;max-width:360px;width:100%;border:1px solid var(--border);border-radius:12px;padding:12px;background:white;display:block;text-align:center">Buka IG ${i+1} →</a>`;
+      const embedUrl = permalink + 'embed/';
+      return `<div style="flex:0 1 340px;max-width:360px;width:100%;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:white"><iframe src="${embedUrl}" style="width:100%;height:520px;border:0;display:block" loading="lazy" allowtransparency="true" scrolling="no"></iframe><a href="${permalink}" target="_blank" style="display:block;padding:8px;text-align:center;font-size:11px;color:var(--granads-primary);font-weight:600;text-decoration:none">Buka di Instagram →</a></div>`;
+    }).join('');
+    hint.textContent='';
+  }catch{ hint.textContent='Gagal memuat IG.' }
+}
+init(); loadIg();
 </script>
 </body>
 </html>
