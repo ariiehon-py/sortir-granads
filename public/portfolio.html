@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Granads — Photography</title>
-<link rel="icon" href="/assets/logo/logo.png" type="image/png"/><link rel="apple-touch-icon" href="/assets/logo/logo.png"/>
+<link rel="icon" href="/assets/logo/favicon.ico" type="image/x-icon"/><link rel="apple-touch-icon" href="/assets/logo/logo.png"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -198,31 +198,10 @@ section{padding:72px 24px}
   </div>
 </div>
 
-<section id="about" class="reveal">
+<section id="testi" class="reveal" style="display:none">
   <div class="section-inner">
-    <div class="about-grid">
-      <div class="about-photos">
-        <div class="about-photo"><div class="ph" style="background:linear-gradient(135deg,#8C0009,#C9A86A)">Owner 1</div></div>
-        <div class="about-photo"><div class="ph" style="background:linear-gradient(135deg,#1A1A1E,#6B7280)">Owner 2</div></div>
-      </div>
-      <div class="about-text">
-        <h3>Cerita di Balik Granads</h3>
-        <p>Kami berdua memulai Granads karena percaya setiap momen layak dikenang dengan indah. Dari prewedding hingga wisuda, kami hadir bukan sekadar memotret, tapi merayakan cerita Anda.</p>
-        <p>Dengan pendekatan yang santai dan hangat, kami bikin sesi foto terasa natural — tanpa kaku, tanpa dibuat-buat. Hasilnya foto yang jujur, timeless, dan penuh rasa.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section id="testi" class="reveal">
-  <div class="section-inner">
-    <div class="section-label">Testimoni</div>
     <h2 class="section-title">Kata Mereka</h2>
-    <div class="testi-grid">
-      <div class="testi-card"><div class="stars">★★★★★</div><p>"Hasilnya melebihi ekspektasi! Foto natural, editan halus, admin ramah banget."</p><div class="who">Rina & Dimas <span>— Prewedding</span></div></div>
-      <div class="testi-card"><div class="stars">★★★★★</div><p>"Wisuda jadi lebih berkesan. Fotonya sharp, posing dibimbing jadi ga kaku."</p><div class="who">Khansa Rafki <span>— Graduation</span></div></div>
-      <div class="testi-card"><div class="stars">★★★★★</div><p>"Pelayanan cepat, foto dikirim on time. Bakal repeat lagi!"</p><div class="who">Sinta <span>— Family</span></div></div>
-    </div>
+    <div class="testi-grid" id="testiGrid"></div>
     <div class="testi-cta"><a href="/book" class="btn btn-primary">Book Sekarang</a></div>
   </div>
 </section>
@@ -297,20 +276,23 @@ async function loadShowcase(){
   try{
     const data = await fetch('/api/showcase').then(r=>r.json());
     if(Array.isArray(data) && data.length>0){
+      // sort by order
+      data.sort((a,b)=>(a.order||0)-(b.order||0));
       document.getElementById('showRow').innerHTML = data.map(it=>{
         if(it.url){
-          return `<div class="show-card"><div class="ph" style="background:url('${escAttr(it.url)}') center/cover no-repeat, linear-gradient(135deg,#eee,#ddd)"><div style="background:linear-gradient(transparent,rgba(0,0,0,.55));padding:12px;border-radius:8px">${escAttr(it.title)}<small>${escAttr(it.subtitle||'')}</small></div></div></div>`;
+          const x = it.posX ?? 50, y = it.posY ?? 50;
+          return `<div class="show-card"><div class="ph" style="background:url('${escAttr(it.url)}') ${x}% ${y}%/cover no-repeat"></div></div>`;
         }
-        return `<div class="show-card"><div class="ph" style="background:${it.bg||'#eee'};color:${it.c||'#333'}"><div>${escAttr(it.title)}<small>${escAttr(it.subtitle||'')}</small></div></div></div>`;
+        return `<div class="show-card"><div class="ph" style="background:${it.bg||'#eee'}"></div></div>`;
       }).join('');
     } else {
       document.getElementById('showRow').innerHTML = fallbackShots.map(s=>
-        `<div class="show-card"><div class="ph" style="background:${s.bg};color:${s.c}"><div>${s.t}<small>${s.s}</small></div></div></div>`
+        `<div class="show-card"><div class="ph" style="background:${s.bg}"></div></div>`
       ).join('');
     }
   }catch{
     document.getElementById('showRow').innerHTML = fallbackShots.map(s=>
-      `<div class="show-card"><div class="ph" style="background:${s.bg};color:${s.c}"><div>${s.t}<small>${s.s}</small></div></div></div>`
+      `<div class="show-card"><div class="ph" style="background:${s.bg}"></div></div>`
     ).join('');
   }
 }
@@ -420,7 +402,16 @@ async function loadIg(){
     hint.textContent='';
   }catch{ hint.textContent='Gagal memuat IG.' }
 }
-init(); loadIg();
+async function loadTesti(){
+  const sec=document.getElementById('testi'); const grid=document.getElementById('testiGrid');
+  try{
+    const data=await fetch('/api/testimoni').then(r=>r.json());
+    if(!Array.isArray(data) || !data.length){ sec.style.display='none'; return; }
+    sec.style.display='block';
+    grid.innerHTML=data.map(t=>`<div class="testi-card"><div class="stars">${'★'.repeat(t.stars||5)}</div><p>"${t.text}"</p><div class="who">${t.name} <span>— ${t.role||''}</span></div></div>`).join('');
+  }catch{ sec.style.display='none'; }
+}
+init(); loadIg(); loadTesti();
 </script>
 </body>
 </html>

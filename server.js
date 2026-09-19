@@ -687,14 +687,22 @@ app.post('/api/showcase', requireAdmin, async (req, res) => {
     const batch2=db.batch();
     photos.forEach((p,i)=>{
       const ref=showcaseCol.doc();
-      batch2.set(ref, { filename:p.driveId, url:p.url, driveId:p.driveId, title:p.title, subtitle:'', order:i, driveFolderId, driveLink: driveLink||`https://drive.google.com/drive/folders/${driveFolderId}`, createdAt:new Date().toISOString() });
+      batch2.set(ref, { filename:p.driveId, url:p.url, driveId:p.driveId, title:p.title, subtitle:'', order:i, posX:50, posY:50, driveFolderId, driveLink: driveLink||`https://drive.google.com/drive/folders/${driveFolderId}`, createdAt:new Date().toISOString() });
     });
     await batch2.commit();
     res.json({ ok:true, count:photos.length, folderId:driveFolderId });
   }catch(e){ console.error(e); res.status(500).json({ error:e.message }) }
 });
+app.put('/api/showcase/reorder', requireAdmin, async (req,res)=>{
+  const { orderedIds } = req.body;
+  if(!Array.isArray(orderedIds)) return res.status(400).json({error:'orderedIds harus array'});
+  const batch=db.batch();
+  orderedIds.forEach((id,i)=>{ batch.set(showcaseCol.doc(id), {order:i}, {merge:true}); });
+  await batch.commit();
+  res.json({ok:true});
+});
 app.put('/api/showcase/:id', requireAdmin, async (req, res) => {
-  const { title, subtitle, order } = req.body;
+  const { title, subtitle, order, posX, posY, position } = req.body;
   const ref = showcaseCol.doc(req.params.id);
   const doc = await ref.get();
   if(!doc.exists) return res.status(404).json({ error:'Showcase tidak ditemukan' });
@@ -702,6 +710,9 @@ app.put('/api/showcase/:id', requireAdmin, async (req, res) => {
   if(title!==undefined) update.title=String(title).slice(0,60);
   if(subtitle!==undefined) update.subtitle=String(subtitle).slice(0,60);
   if(order!==undefined) update.order=parseInt(order)||0;
+  if(posX!==undefined) update.posX=Math.max(0,Math.min(100,parseInt(posX)||50));
+  if(posY!==undefined) update.posY=Math.max(0,Math.min(100,parseInt(posY)||50));
+  if(position!==undefined) update.position=String(position).slice(0,20);
   update.updatedAt=new Date().toISOString();
   await ref.set(update,{merge:true});
   res.json({ ok:true });
@@ -742,6 +753,62 @@ app.put('/api/admin/ig-posts', requireAdmin, async (req, res) => {
   }
   await igCol.doc('main').set({ links, updatedAt: new Date().toISOString() }, { merge:true });
   res.json({ ok:true, links });
+});
+
+// --- TESTIMONI API (dinamis via porto-admin) ---
+const testiCol = db.collection('testimonials');
+app.get('/api/testimoni', async (req,res)=>{
+  const snap = await testiCol.orderBy('order','asc').get();
+  const items = snap.docs.map(d=> ({ ...d.data(), id:d.id }));
+  items.sort((a,b)=>(a.order||0)-(b.order||0));
+  res.json(items);
+});
+app.get('/api/admin/testimoni', requireAdmin, async (req,res)=>{
+  const snap = await testiCol.orderBy('order','asc').get();
+  const items = snap.docs.map(d=> ({ ...d.data(), id:d.id }));
+  res.json(items);
+});
+app.post('/api/admin/testimoni', requireAdmin, async (req,res)=>{
+  const { text, name, role, stars } = req.body;
+  if(!text || !String(text).trim()) return res.status(400).json({error:'Testimoni wajib'});
+  const data = {
+    text: String(text).trim().slice(0,500),
+    name: String(name||'').trim().slice(0,60) || 'Anonim',
+    role: String(role||'').trim().slice(0,60) || '',
+    stars: Math.max(1,Math.min(5, parseInt(stars)||5)),
+    order: parseInt(req.body.order)|| (await testiCol.get()).size,
+    createdAt: new Date().toISOString()
+  };
+  const ref = await testiCol.add(data);
+  await ref.set({ id: ref.id }, {merge:true});
+  res.json({ id: ref.id, ...data, id: ref.id });
+});
+app.put('/api/admin/testimoni/:id', requireAdmin, async (req,res)=>{
+  const { text, name, role, stars, order } = req.body;
+  const ref = testiCol.doc(req.params.id);
+  const doc = await ref.get();
+  if(!doc.exists) return res.status(404).json({error:'Tidak ditemukan'});
+  const upd={};
+  if(text!==undefined) upd.text=String(text).slice(0,500);
+  if(name!==undefined) upd.name=String(name).slice(0,60);
+  if(role!==undefined) upd.role=String(role).slice(0,60);
+  if(stars!==undefined) upd.stars=Math.max(1,Math.min(5,parseInt(stars)||5));
+  if(order!==undefined) upd.order=parseInt(order)||0;
+  upd.updatedAt=new Date().toISOString();
+  await ref.set(upd,{merge:true});
+  res.json({ok:true});
+});
+app.delete('/api/admin/testimoni/:id', requireAdmin, async (req,res)=>{
+  await testiCol.doc(req.params.id).delete();
+  res.json({ok:true});
+});
+app.put('/api/admin/testimoni-reorder', requireAdmin, async (req,res)=>{
+  const { orderedIds } = req.body;
+  if(!Array.isArray(orderedIds)) return res.status(400).json({error:'orderedIds array'});
+  const batch=db.batch();
+  orderedIds.forEach((id,i)=> batch.set(testiCol.doc(id), {order:i}, {merge:true}));
+  await batch.commit();
+  res.json({ok:true});
 });
 
 app.use('/uploads', express.static(UPLOAD_DIR));
