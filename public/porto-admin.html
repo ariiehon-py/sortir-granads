@@ -28,8 +28,8 @@
   <div style="display:flex;gap:8px"><a href="/auth/login" class="btn gold small" id="btnLoginHidden">Login Google</a><button class="btn ghost small" id="btnLogoutHidden">Logout</button></div>
 </div>
 
-<div class="container">
-  <div id="adminGate" style="display:none;margin-bottom:16px"></div>
+<div id="adminGate" style="display:none;max-width:1100px;margin:16px auto 0;padding:0 24px"></div>
+<div class="container" id="mainContent" style="display:none">
   <h1 style="margin:0">Portofolio</h1>
 
   <div id="showcaseCard" class="card" style="margin-top:18px">
@@ -94,12 +94,14 @@ async function checkAuth(){
       if(btn) btn.textContent=s.loggedIn?'Ganti Akun':'Login Google';
     }
     const gate=document.getElementById('adminGate');
+    const main=document.getElementById('mainContent');
     if(gate){
       if(!s.isAdmin){
         gate.style.display='block';
         gate.innerHTML=s.loggedIn?`<div class="card" style="text-align:center;padding:32px"><h3>Akses Ditolak</h3><p class="hint">Login sebagai <b>${esc(s.email)}</b> tidak diizinkan.</p></div>`:`<div class="card" style="text-align:center;padding:32px"><h3>Login Diperlukan</h3><a href="/auth/login" class="btn gold">Login dengan Google</a></div>`;
-      } else gate.style.display='none';
-    }
+        if(main) main.style.display='none';
+      } else { gate.style.display='none'; if(main) main.style.display='block'; }
+    } else if(main) main.style.display = s.isAdmin ? 'block' : 'none';
   }catch{}
 }
 checkAuth();
@@ -111,7 +113,7 @@ function renderShowcase(){
   const el=document.getElementById('showcaseList');
   const data=showcaseData;
   if(!data.length){ el.innerHTML='<div class="hint" style="grid-column:1/-1;text-align:center;padding:12px">Belum ada foto showcase. Isi link Drive di atas lalu Sync.</div>'; return; }
-  const info=data[0]?.driveLink?`<div class="hint" style="grid-column:1/-1;padding:8px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px">Folder: <a href="${esc(data[0].driveLink)}" target="_blank" style="color:var(--granads-primary)">${esc(data[0].driveLink)}</a> • ${data.length} foto</div>`:'';
+  const info=data[0]?.driveLink?`<div class="hint" style="grid-column:1/-1;padding:8px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;word-break:break-all;overflow-wrap:anywhere">Folder: <a href="${esc(data[0].driveLink)}" target="_blank" style="color:var(--granads-primary);word-break:break-all">${esc(data[0].driveLink)}</a> • ${data.length} foto</div>`:'';
   const visible=data.slice(0,showcaseLimit);
   el.innerHTML=info+visible.map(it=>`<div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;background:white"><div style="height:140px;background:url('${esc(it.url)}') center/cover"></div><div style="padding:8px"><div class="hint" style="font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(it.filename||it.title||'')}</div><button class="btn small ghost" style="width:100%;margin-top:6px;border-color:#FECACA;color:#B91C1C" onclick="deleteShowcase('${it.id}')">Hapus</button></div></div>`).join('');
   if(data.length>showcaseLimit){

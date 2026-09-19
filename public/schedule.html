@@ -58,7 +58,8 @@
   </div>
 </div>
 
-<div class="container">
+<div id="adminGate" style="display:none;max-width:1100px;margin:16px auto 0;padding:0 24px"></div>
+<div class="container" id="mainContent" style="display:none">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px">
     <h1 style="margin:0">Jadwal Foto</h1>
     <button class="btn gold small" onclick="openModal()">+ Tambah Jadwal</button>
@@ -175,10 +176,24 @@ async function checkAuth(){
       else hint.textContent = 'OAuth belum dikonfigurasi';
       if(btnLogin) btnLogin.textContent = s.loggedIn ? 'Ganti Akun' : 'Login Google';
     }
+    const gate=document.getElementById('adminGate');
+    const main=document.getElementById('mainContent');
+    if(gate){
+      if(!s.isAdmin){
+        gate.style.display='block';
+        gate.innerHTML=s.loggedIn?`<div class="card" style="text-align:center;padding:32px"><h3>Akses Ditolak</h3><p class="hint">Login sebagai <b>${esc(s.email)}</b> tidak diizinkan.</p></div>`:`<div class="card" style="text-align:center;padding:32px"><h3>Login Diperlukan</h3><p class="hint">Halaman owner hanya untuk admin</p><a href="/auth/login" class="btn gold">Login dengan Google</a></div>`;
+        if(main) main.style.display='none';
+      } else { gate.style.display='none'; if(main) main.style.display='block'; }
+    } else if(main) main.style.display = s.isAdmin ? 'block' : 'none';
+    return s;
   }catch{}
 }
-checkAuth();
-init();
+checkAuth().then(s=>{ if(s?.isAdmin) init(); else {
+  // tetap coba init tapi akan tertutup gate — atau tampilkan pesan di scheduleList
+  const el=document.getElementById('scheduleList');
+  if(el) el.innerHTML=`<div class="hint" style="text-align:center;padding:16px">Login dulu untuk lihat jadwal.</div>`;
+}});
+;
 document.getElementById('logoBrand').addEventListener('click', ()=>{
   const p=document.getElementById('hiddenAuth');
   p.style.display = p.style.display==='none' ? 'flex' : 'none';

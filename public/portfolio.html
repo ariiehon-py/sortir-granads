@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Granads — Photography</title>
+<link rel="icon" href="/assets/logo/logo.png" type="image/png"/><link rel="apple-touch-icon" href="/assets/logo/logo.png"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -41,9 +42,9 @@ body{background:var(--granads-cream);color:var(--granads-dark);overflow-x:hidden
 .nav-links a:hover{background:var(--granads-primary);color:white}
 @media(max-width:768px){.navbar{padding:10px 14px}.nav-links a{padding:6px 9px;font-size:11px}}
 
-/* FIRST VIEWPORT: hero + showcase full — bawahin dikit */
-.first{min-height:100svh;display:flex;flex-direction:column;justify-content:flex-start;padding-top:72px;padding-bottom:0}
-.hero{margin-bottom:28px}
+/* FIRST VIEWPORT: hero + showcase — rapetin gap */
+.first{display:flex;flex-direction:column;justify-content:flex-start;padding-top:72px;padding-bottom:24px}
+.hero{margin-bottom:18px}
 .hero{padding:10px 24px 0;text-align:center}
 .hero-tag{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--granads-gold);font-weight:700;margin-bottom:8px}
 .hero h1{font-size:clamp(18px,2.6vw,28px);font-weight:600;line-height:1.45;max-width:640px;margin:0 auto;color:var(--granads-dark)}
@@ -53,8 +54,8 @@ body{background:var(--granads-cream);color:var(--granads-dark);overflow-x:hidden
 .btn-primary{background:var(--granads-primary);color:white}
 .btn-outline{background:transparent;color:var(--granads-primary);border:1.5px solid var(--granads-primary)}
 
-/* SHOWCASE — 10 kartu, mentok kanan-kiri, lebih besar & turun biar bawah ga kosong */
-.showcase{position:relative;display:flex;flex-direction:column;margin-top:42px;flex:0 0 auto}
+/* SHOWCASE — 10 kartu, mentok kanan-kiri */
+.showcase{position:relative;display:flex;flex-direction:column;margin-top:24px;flex:0 0 auto}
 .show-viewport{position:relative;overflow:hidden;padding:0 0 12px;max-width:100%;margin:0;width:100%}
 .show-row{display:flex;align-items:stretch;justify-content:flex-start;overflow-x:auto;padding:8px 0 20px 0;scroll-snap-type:x mandatory;scrollbar-width:none;gap:0}
 .show-row::-webkit-scrollbar{display:none}
@@ -62,7 +63,15 @@ body{background:var(--granads-cream);color:var(--granads-dark);overflow-x:hidden
 .show-card + .show-card{margin-left:-28px}
 .show-card:nth-child(odd){transform:rotate(-1.5deg) translateY(6px)}
 .show-card:nth-child(even){transform:rotate(1.2deg)}
-.show-card:hover{transform:rotate(0) translateY(-4px) scale(1.02);z-index:10}
+.show-card{animation:goyang 4.2s ease-in-out infinite}
+.show-card:nth-child(even){animation:goyangEven 4.2s ease-in-out infinite}
+.show-card:nth-child(3n){animation-delay:.3s}
+.show-card:nth-child(4n){animation-delay:.6s}
+.show-card:hover{transform:rotate(0) translateY(-4px) scale(1.02) !important;z-index:10;animation-play-state:paused}
+.show-card.center{transform:rotate(0) translateY(-10px) scale(1.04);z-index:15;box-shadow:0 16px 36px rgba(0,0,0,.18);animation:goyangCenter 3s ease-in-out infinite}
+@keyframes goyang{0%,100%{transform:rotate(-1.5deg) translateY(6px)}50%{transform:rotate(-1deg) translateY(2px)}}
+@keyframes goyangEven{0%,100%{transform:rotate(1.2deg) translateY(0)}50%{transform:rotate(1.6deg) translateY(4px)}}
+@keyframes goyangCenter{0%,100%{transform:rotate(0) translateY(-10px) scale(1.04)}50%{transform:rotate(0.6deg) translateY(-6px) scale(1.04)}}
 .show-card .ph{width:100%;height:clamp(420px,46vh,500px);display:flex;align-items:flex-end;padding:16px;font-weight:800;font-size:20px;line-height:1.1;color:rgba(255,255,255,.92)}
 .show-card small{display:block;font-size:11px;font-weight:500;opacity:.85;margin-top:4px}
 .show-arrow{position:absolute;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:white;cursor:pointer;font-size:18px;z-index:20;box-shadow:0 4px 14px rgba(0,0,0,.1)}
@@ -80,11 +89,42 @@ body{background:var(--granads-cream);color:var(--granads-dark);overflow-x:hidden
 
 /* SECTIONS */
 section{padding:72px 24px}
+#about{padding:32px 24px 48px}
 .section-inner{max-width:1000px;margin:0 auto}
 .section-label{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--granads-gold);font-weight:700;margin-bottom:8px}
 .section-title{font-size:clamp(22px,4vw,32px);font-weight:800;margin-bottom:12px}
 .section-desc{color:var(--muted);font-size:14px;line-height:1.6;max-width:600px}
 @media(max-width:768px){section{padding:56px 16px}}
+/* ABOUT — 2 foto owner */
+.about-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:32px;align-items:center}
+.about-photos{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.about-photo{aspect-ratio:3/4;border-radius:16px;overflow:hidden;background:#E8E0D6;position:relative;box-shadow:0 8px 24px rgba(0,0,0,.08)}
+.about-photo .ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:800;color:white;font-size:22px}
+.about-photo:nth-child(2){transform:translateY(18px)}
+.about-text h3{font-size:20px;font-weight:800;margin-bottom:10px}
+.about-text p{font-size:13px;line-height:1.7;color:var(--muted);margin-bottom:12px}
+.about-stats{display:flex;gap:18px;margin-top:16px}
+.about-stats b{font-size:20px;color:var(--granads-primary)}
+.about-stats span{font-size:11px;color:var(--muted)}
+@media(max-width:768px){.about-grid{grid-template-columns:1fr}.about-photo:nth-child(2){transform:none}}
+/* SERVICES */
+.services-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px}
+.service-card{background:white;border:1px solid var(--border);border-radius:16px;padding:20px;transition:.2s}
+.service-card:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(0,0,0,.08);border-color:var(--granads-gold)}
+.service-card h4{font-size:14px;font-weight:800;margin-bottom:6px}
+.service-card p{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:12px}
+.service-card .price{font-size:13px;font-weight:800;color:var(--granads-primary)}
+@media(max-width:900px){.services-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.services-grid{grid-template-columns:1fr}}
+/* TESTI */
+.testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px}
+.testi-card{background:white;border:1px solid var(--border);border-radius:16px;padding:18px}
+.testi-card .stars{color:var(--granads-gold);font-size:12px;margin-bottom:8px}
+.testi-card p{font-size:13px;line-height:1.6;color:var(--granads-dark)}
+.testi-card .who{margin-top:12px;font-size:12px;font-weight:700}
+.testi-card .who span{font-weight:400;color:var(--muted)}
+@media(max-width:900px){.testi-grid{grid-template-columns:1fr}}
+.testi-cta{text-align:center;margin-top:22px}
 
 /* CALENDAR — same as workspace */
 .cal-top{display:flex;justify-content:space-between;align-items:center;margin:24px 0 14px;flex-wrap:wrap;gap:10px}
@@ -157,6 +197,35 @@ section{padding:72px 24px}
     </div>
   </div>
 </div>
+
+<section id="about" class="reveal">
+  <div class="section-inner">
+    <div class="about-grid">
+      <div class="about-photos">
+        <div class="about-photo"><div class="ph" style="background:linear-gradient(135deg,#8C0009,#C9A86A)">Owner 1</div></div>
+        <div class="about-photo"><div class="ph" style="background:linear-gradient(135deg,#1A1A1E,#6B7280)">Owner 2</div></div>
+      </div>
+      <div class="about-text">
+        <h3>Cerita di Balik Granads</h3>
+        <p>Kami berdua memulai Granads karena percaya setiap momen layak dikenang dengan indah. Dari prewedding hingga wisuda, kami hadir bukan sekadar memotret, tapi merayakan cerita Anda.</p>
+        <p>Dengan pendekatan yang santai dan hangat, kami bikin sesi foto terasa natural — tanpa kaku, tanpa dibuat-buat. Hasilnya foto yang jujur, timeless, dan penuh rasa.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="testi" class="reveal">
+  <div class="section-inner">
+    <div class="section-label">Testimoni</div>
+    <h2 class="section-title">Kata Mereka</h2>
+    <div class="testi-grid">
+      <div class="testi-card"><div class="stars">★★★★★</div><p>"Hasilnya melebihi ekspektasi! Foto natural, editan halus, admin ramah banget."</p><div class="who">Rina & Dimas <span>— Prewedding</span></div></div>
+      <div class="testi-card"><div class="stars">★★★★★</div><p>"Wisuda jadi lebih berkesan. Fotonya sharp, posing dibimbing jadi ga kaku."</p><div class="who">Khansa Rafki <span>— Graduation</span></div></div>
+      <div class="testi-card"><div class="stars">★★★★★</div><p>"Pelayanan cepat, foto dikirim on time. Bakal repeat lagi!"</p><div class="who">Sinta <span>— Family</span></div></div>
+    </div>
+    <div class="testi-cta"><a href="/book" class="btn btn-primary">Book Sekarang</a></div>
+  </div>
+</section>
 
 <section id="jadwal" class="reveal">
   <div class="section-inner">
@@ -245,7 +314,28 @@ async function loadShowcase(){
     ).join('');
   }
 }
-loadShowcase();
+async function initShowcaseScroll(){
+  const row=document.getElementById('showRow');
+  function updateCenter(){
+    const center=row.getBoundingClientRect().left + row.offsetWidth/2;
+    let best=null, bestDist=Infinity;
+    row.querySelectorAll('.show-card').forEach(c=>{
+      const r=c.getBoundingClientRect();
+      const cc=r.left + r.width/2;
+      const d=Math.abs(center-cc);
+      if(d<bestDist){ bestDist=d; best=c; }
+    });
+    row.querySelectorAll('.show-card').forEach(c=>c.classList.remove('center'));
+    if(best) best.classList.add('center');
+  }
+  row.addEventListener('scroll', ()=> requestAnimationFrame(updateCenter), {passive:true});
+  window.addEventListener('resize', updateCenter);
+  // panggil setelah load
+  const obs=new MutationObserver(updateCenter);
+  obs.observe(row,{childList:true});
+  setTimeout(updateCenter,300);
+}
+loadShowcase().then(()=> initShowcaseScroll());
 document.getElementById('showPrev').onclick = ()=> document.getElementById('showRow').scrollBy({left:-380,behavior:'smooth'});
 document.getElementById('showNext').onclick = ()=> document.getElementById('showRow').scrollBy({left:380,behavior:'smooth'});
 

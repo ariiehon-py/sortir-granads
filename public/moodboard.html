@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Granads — Project</title>
+<title>Granads — Shoots</title>
 <link rel="icon" href="/assets/logo/logo.png" type="image/png"/><link rel="apple-touch-icon" href="/assets/logo/logo.png"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -34,9 +34,10 @@
   </div>
 </div>
 
-<div class="container" style="max-width:100%!important;width:100%!important;margin:0!important;padding:24px 40px">
+<div id="adminGate" style="display:none;max-width:1100px;margin:16px auto 0;padding:0 24px"></div>
+<div class="container" id="mainContent" style="display:none;max-width:100%!important;width:100%!important;margin:0!important;padding:24px 40px">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px">
-    <h1 style="margin:0">Project</h1>
+    <h1 style="margin:0">Shoots</h1>
     <button class="btn gold small" onclick="openModal()">+ Tambah Project</button>
   </div>
   <div id="projectList" style="display:flex;flex-direction:column;gap:8px"></div>
@@ -192,14 +193,22 @@ async function checkAuth(){
       else hint.textContent = 'OAuth belum dikonfigurasi';
       if(btnLogin) btnLogin.textContent = s.loggedIn ? 'Ganti Akun' : 'Login Google';
     }
-    const el=document.getElementById('projectList');
-    if(!s.isAdmin && el && projects.length===0){
-      // gate will be shown by init catch, keep
-    }
+    const gate=document.getElementById('adminGate');
+    const main=document.getElementById('mainContent');
+    if(gate){
+      if(!s.isAdmin){
+        gate.style.display='block';
+        gate.innerHTML=s.loggedIn?`<div class="card" style="text-align:center;padding:32px"><h3>Akses Ditolak</h3><p class="hint">Login sebagai <b>${esc(s.email)}</b> tidak diizinkan.</p></div>`:`<div class="card" style="text-align:center;padding:32px"><h3>Login Diperlukan</h3><p class="hint">Halaman ini hanya untuk admin</p><a href="/auth/login" class="btn gold">Login dengan Google</a></div>`;
+        if(main) main.style.display='none';
+      } else { gate.style.display='none'; if(main) main.style.display='block'; }
+    } else if(main) main.style.display = s.isAdmin ? 'block' : 'none';
+    return s;
   }catch{}
 }
-checkAuth();
-init();
+checkAuth().then(s=>{ if(s?.isAdmin) init(); else {
+  const el=document.getElementById('projectList');
+  if(el) el.innerHTML=`<div class="hint" style="text-align:center;padding:16px">Login dulu.</div>`;
+}});
 document.getElementById('logoBrand').addEventListener('click', ()=>{
   const p=document.getElementById('hiddenAuth');
   p.style.display = p.style.display==='none' ? 'flex' : 'none';
