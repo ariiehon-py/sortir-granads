@@ -757,6 +757,17 @@ cleanPages.forEach(p=>{
 });
 app.get('/book', (req,res)=> res.sendFile(path.join(__dirname,'public','booking.html')));
 app.get('/booking', (req,res)=> res.sendFile(path.join(__dirname,'public','booking.html')));
+// redirect .html ke clean URL biar ga keliatan .html
+app.use((req,res,next)=>{
+  if(!req.path.endsWith('.html')) return next();
+  const base = path.basename(req.path, '.html');
+  const q = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+  const cleanMap = { 'portofolio':'/portfolio', 'jadwal':'/schedule', 'porto-admin':'/porto-admin', 'portofolio-admin':'/porto-admin' };
+  if(cleanMap[base]) return res.redirect(301, cleanMap[base]+q);
+  if(cleanPages.includes(base)) return res.redirect(301, '/'+base+q);
+  if(['booking','client','download','moodboard-work','projects','schedule','portfolio','owner','porto-admin'].includes(base)) return res.redirect(301, '/'+base+q);
+  next();
+});
 
 app.use((req, res, next) => {
   const isHtml = req.path.endsWith('.html') || req.path.endsWith('.css') || req.path.endsWith('.js') || cleanPages.includes(req.path.slice(1).split('/')[0].split('?')[0]);
@@ -771,6 +782,8 @@ app.use(express.static(path.join(__dirname, 'public'), { extensions: ['html'] })
 
 app.listen(PORT, () => {
   console.log(`Granads Sortir Foto running at http://localhost:${PORT}`);
-  console.log(`Owner: http://localhost:${PORT}/owner.html`);
+  console.log(`Owner: http://localhost:${PORT}/owner`);
+  console.log(`Portfolio: http://localhost:${PORT}/portfolio`);
+  console.log(`Book: http://localhost:${PORT}/book`);
   console.log(`Auth status: http://localhost:${PORT}/auth/status`);
 });

@@ -52,7 +52,7 @@ body{overflow:hidden;background:#2A2A2E;font-family:'Space Grotesk',sans-serif}
   <button onclick="zoomFit()">Fit</button>
   <div class="toolbar-sep"></div>
   <button onclick="saveBoard()">Simpan</button>
-  <a href="moodboard.html" style="padding:6px 12px;border-radius:8px;background:transparent;color:white;font-size:12px;font-weight:600;text-decoration:none">Kembali</a>
+  <a href="/moodboard" style="padding:6px 12px;border-radius:8px;background:transparent;color:white;font-size:12px;font-weight:600;text-decoration:none">Kembali</a>
 </div>
 
 <div id="addMenu">
@@ -98,7 +98,7 @@ const canvas = document.getElementById('canvas');
 
 function init(){
   if(!project){
-    document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100vh;color:white;text-align:center"><div><h2>Project tidak ditemukan</h2><a href="moodboard.html" style="color:var(--granads-primary)">Kembali</a></div></div>`;
+    document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100vh;color:white;text-align:center"><div><h2>Project tidak ditemukan</h2><a href="/moodboard" style="color:var(--granads-primary)">Kembali</a></div></div>`;
     return;
   }
   renderItems();

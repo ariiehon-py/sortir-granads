@@ -15,11 +15,11 @@
     <img src="assets/logo/logo.png" alt="Granads" style="height:32px;width:auto;object-fit:contain" onerror="this.style.display='none'"/>
   </div>
   <div class="nav">
-    <a href="projects.html">Projects</a>
-    <a href="schedule.html">Jadwal</a>
-    <a href="moodboard.html">Shoots</a>
-    <a href="porto-admin.html">Portofolio</a>
-    <a href="owner.html" class="active">Pesanan</a>
+    <a href="/projects">Projects</a>
+    <a href="/schedule">Jadwal</a>
+    <a href="/moodboard">Shoots</a>
+    <a href="/porto-admin">Portofolio</a>
+    <a href="/owner" class="active">Pesanan</a>
   </div>
 </div>
 <div id="hiddenAuth" style="display:none;max-width:1100px;margin:0 auto;padding:10px 24px;background:#FFFCF8;border-bottom:1px solid var(--border);align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
@@ -167,7 +167,7 @@ async function loadProjects(){
     return;
   }
   tbody.innerHTML = data.map(p=>{
-    const link = `${location.origin}/client.html?id=${p.id}`;
+    const link = `${location.origin}/client?id=${p.id}`;
     const c = p.counts;
     const hasFolders = p.driveFolders ? '' : '';
     const totalChosen = c.selected + c.considered;

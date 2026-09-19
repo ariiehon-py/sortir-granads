@@ -15,11 +15,11 @@
     <img src="assets/logo/logo.png" alt="Granads" style="height:32px;width:auto;object-fit:contain" onerror="this.style.display='none'"/>
   </div>
   <div class="nav">
-    <a href="projects.html">Projects</a>
-    <a href="schedule.html">Jadwal</a>
-    <a href="moodboard.html" class="active">Shoots</a>
-    <a href="porto-admin.html">Portofolio</a>
-    <a href="owner.html">Pesanan</a>
+    <a href="/projects">Projects</a>
+    <a href="/schedule">Jadwal</a>
+    <a href="/moodboard" class="active">Shoots</a>
+    <a href="/porto-admin">Portofolio</a>
+    <a href="/owner">Pesanan</a>
   </div>
 </div>
 <div id="hiddenAuth" style="display:none;max-width:1100px;margin:0 auto;padding:10px 24px;background:#FFFCF8;border-bottom:1px solid var(--border);align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
@@ -234,7 +234,7 @@ function renderList(){
         ${p.note?`<div class="hint" style="font-size:11px;margin-top:2px">${esc(p.note)}</div>`:''}
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <a href="moodboard-work.html?id=${esc(p.id)}" class="btn small ghost" style="text-decoration:none">Moodboard</a>
+        <a href="moodboard-work?id=${esc(p.id)}" class="btn small ghost" style="text-decoration:none">Moodboard</a>
         <button class="btn small ghost" onclick="openDeliveryFull('${esc(p.id)}')">Delivery Full</button>
         ${p.deliveryProjectId ? `<button class="btn small ghost" onclick="fetchShootDrive('${esc(p.id)}','${esc(p.deliveryProjectId)}')">Fetch</button>` : ''}
         <button class="btn small ghost" onclick="openDelivery('${esc(p.id)}')">Delivery Edited</button>
@@ -362,7 +362,7 @@ function openDelivery(id){
   document.getElementById('deliveryLink').value = p?.deliveryLink || '';
   if(p?.deliveryFolderId){
     document.getElementById('deliveryResult').style.display='block';
-    document.getElementById('deliveryUrl').value = `${location.origin}/download.html?folder=${p.deliveryFolderId}`;
+    document.getElementById('deliveryUrl').value = `${location.origin}/download?folder=${p.deliveryFolderId}`;
   } else {
     document.getElementById('deliveryResult').style.display='none';
   }
@@ -389,7 +389,7 @@ async function saveDelivery(){
   p.deliveryFolderId = folderId;
   await api(`/api/shoots/${deliveryProjectId}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({deliveryLink:link, deliveryFolderId:folderId})});
   document.getElementById('deliveryResult').style.display='block';
-  document.getElementById('deliveryUrl').value = `${location.origin}/download.html?folder=${folderId}`;
+  document.getElementById('deliveryUrl').value = `${location.origin}/download?folder=${folderId}`;
   renderList();
 }
 
@@ -407,7 +407,7 @@ async function fetchShootDrive(shootId, projectId){
 
 function copyDeliveryLink(id){
   const p = projects.find(x=>x.id===id);
-  const url = p?.deliveryFolderId ? `${location.origin}/download.html?folder=${p.deliveryFolderId}` : `${location.origin}/download.html?id=${id}`;
+  const url = p?.deliveryFolderId ? `${location.origin}/download?folder=${p.deliveryFolderId}` : `${location.origin}/download?id=${id}`;
   navigator.clipboard.writeText(url);
   alert('Link delivery disalin!');
 }

@@ -137,7 +137,7 @@ let saveTimer = null;
 let visibleCount = 100;
 
 if(!projectId){
-  document.getElementById('loading').innerHTML = `<div class="card" style="max-width:520px;margin:0 auto;text-align:center"><h3>Link tidak valid</h3><p class="hint">Buka link dari Owner, contoh: <span class="mono">/client.html?id=abc123</span></p><a href="owner.html" class="btn">Ke Owner</a></div>`;
+  document.getElementById('loading').innerHTML = `<div class="card" style="max-width:520px;margin:0 auto;text-align:center"><h3>Link tidak valid</h3><p class="hint">Buka link dari Owner, contoh: <span class="mono">/client?id=abc123</span></p><a href="owner" class="btn">Ke Owner</a></div>`;
 } else {
   init();
 }
