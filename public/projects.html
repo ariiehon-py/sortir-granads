@@ -22,6 +22,16 @@
     <a href="/porto-admin">Portofolio</a>
     <a href="/owner">Pesanan</a>
   </div>
+  <button class="hamburger" id="hamburgerBtn" aria-label="Menu" onclick="toggleMobileNav()">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+<div class="mobile-nav" id="mobileNav">
+  <a href="/projects" class="active">Projects</a>
+  <a href="/schedule">Jadwal</a>
+  <a href="/moodboard">Shoots</a>
+  <a href="/porto-admin">Portofolio</a>
+  <a href="/owner">Pesanan</a>
 </div>
 <div id="hiddenAuth" style="display:none;max-width:1100px;margin:0 auto;padding:10px 24px;background:#FFFCF8;border-bottom:1px solid var(--border);align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
   <div>
@@ -131,6 +141,17 @@ function esc(s){ return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
 function selVal(v){ if(v==null) return 0; if(typeof v==='object') return v.v ?? v.value ?? 0; return Number(v)||0; }
 function selNote(v){ if(typeof v==='object') return v.note ?? v.comment ?? ''; return ''; }
 
+function showToast(msg,type='info'){
+  let c=document.querySelector('.toast-container');
+  if(!c){c=document.createElement('div');c.className='toast-container';document.body.appendChild(c)}
+  const t=document.createElement('div');t.className='toast '+type;t.textContent=msg;c.appendChild(t);
+  setTimeout(()=>{t.classList.add('out');setTimeout(()=>t.remove(),300)},3000);
+}
+function toggleMobileNav(){
+  document.getElementById('hamburgerBtn').classList.toggle('open');
+  document.getElementById('mobileNav').classList.toggle('show');
+}
+
 function showConfirm(msg){
   return new Promise(resolve=>{
     confirmResolve = resolve;
@@ -215,7 +236,7 @@ async function loadProjects(){
         <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
           <span class="badge ok">${c.selected} dipilih</span>
           <span class="badge warn">${c.considered} ragu</span>
-          ${c.notes?`<span class="badge" style="background:#FFF7ED;border-color:#FDBA74;color:#9A3412">📝 ${c.notes} catatan</span>`:''}
+          ${c.notes?`<span class="badge" style="background:#FFF7ED;border-color:#FDBA74;color:#9A3412">${c.notes} catatan</span>`:''}
         </div>
       </td>
       <td data-label="Aksi">
@@ -238,7 +259,7 @@ async function fetchDrive(id){
   if(!link) return;
   try{
     const res = await api(`/api/projects/${id}/fetch-drive`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({driveLink: link})});
-    if(res.ok) { alert(`Fetch berhasil (${res.via}): ${res.count} foto`); loadProjects(); if(detailProject) openDetail(id); }
+    if(res.ok) { showToast(`Fetch berhasil (${res.via}): ${res.count} foto`,'success'); loadProjects(); if(detailProject) openDetail(id); }
     else alert(res.message);
   }catch(e){ alert(e.message)}
 }
@@ -271,7 +292,7 @@ async function openDetail(id){
   document.getElementById('detailSection').style.display='block';
   document.getElementById('detailTitle').textContent = `${p.clientName} — ${p.photos.length} foto • Maks ${p.maxSelection}`;
   const _selVals = Object.values(p.selections||{});
-  document.getElementById('detailHint').textContent = `Terpilih ${ _selVals.filter(v=>selVal(v)===1).length}/${p.maxSelection}${ _selVals.filter(v=>selNote(v)).length ? ` • 📝 ${_selVals.filter(v=>selNote(v)).length} catatan` : ''}`;
+  document.getElementById('detailHint').textContent = `Terpilih ${ _selVals.filter(v=>selVal(v)===1).length}/${p.maxSelection}${ _selVals.filter(v=>selNote(v)).length ? ` • ${_selVals.filter(v=>selNote(v)).length} catatan` : ''}`;
   if(p.driveFolders){
     document.getElementById('folderLinks').innerHTML = `Folder Drive: <a href="${p.driveFolders.selected?`https://drive.google.com/drive/folders/${p.driveFolders.selected}`:'#'}" target="_blank">Terpilih</a> • Dipertimbangkan`;
   } else {
@@ -286,7 +307,7 @@ async function openDetail(id){
   if(selectedPhotos.length > 0){
     selectedList.innerHTML = selectedPhotos.map(ph => {
       const n = selNote(sel[ph.id]);
-      return n ? `${esc(ph.filename)} — <span style="color:#8C0009">📝 ${esc(n)}</span>` : esc(ph.filename);
+      return n ? `${esc(ph.filename)} — <span style="color:#8C0009">${esc(n)}</span>` : esc(ph.filename);
     }).join('<br>');
     selectedBox.style.display = 'block';
   } else {
@@ -301,7 +322,7 @@ async function openDetail(id){
       noteBox.style.cssText='margin-top:10px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:10px;font-size:11px;line-height:1.6;max-height:220px;overflow:auto';
       document.getElementById('selectedFiles').after(noteBox);
     }
-    noteBox.innerHTML = `<b style="font-size:11px;color:#92400E">📝 CATATAN CLIENT (${esc(anyNotes.length)} foto Dipilih):</b><br>` + anyNotes.map(ph=> `<span class="mono">${esc(ph.filename)}</span>: ${esc(selNote(sel[ph.id]))}`).join('<br>');
+    noteBox.innerHTML = `<b style="font-size:11px;color:#92400E">CATATAN CLIENT (${esc(anyNotes.length)} foto Dipilih):</b><br>` + anyNotes.map(ph=> `<span class="mono">${esc(ph.filename)}</span>: ${esc(selNote(sel[ph.id]))}`).join('<br>');
     noteBox.style.display='block';
   } else {
     const nb=document.getElementById('notesList'); if(nb) nb.style.display='none';
@@ -337,7 +358,7 @@ function renderDetail(){
       <div style="padding:8px 10px">
         <div class="mono" style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(ph.filename)}</div>
         <div class="hint" style="font-size:11px">${v===1?'Dipilih':v===2?'Ragu':'Belum'}</div>
-        ${note?`<div style="margin-top:6px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:6px 8px;font-size:11px;line-height:1.4;color:#92400E">📝 ${esc(note)}</div>`:''}
+        ${note?`<div style="margin-top:6px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:6px 8px;font-size:11px;line-height:1.4;color:#92400E">${esc(note)}</div>`:''}
       </div>
     </div>`;
   }).join('');
@@ -346,7 +367,7 @@ function renderDetail(){
   }
 }
 
-document.getElementById('btnLogoutHidden') && (document.getElementById('btnLogoutHidden').onclick = async ()=>{ await fetch('/auth/logout',{method:'POST'}); checkAuth(); alert('Logout berhasil'); location.reload(); });
+document.getElementById('btnLogoutHidden') && (document.getElementById('btnLogoutHidden').onclick = async ()=>{ await fetch('/auth/logout',{method:'POST'}); checkAuth(); showToast('Logout berhasil','success'); location.reload(); });
 document.getElementById('btnRefresh').onclick = loadProjects;
 document.getElementById('detailFilters').onclick = (e)=>{
   if(e.target.tagName!=='BUTTON') return;
@@ -363,7 +384,7 @@ document.getElementById('btnDownloadJson').onclick = ()=>{
 async function quickCreateFolders(id){
   try{
     const res = await api(`/api/projects/${id}/create-drive-folders`, {method:'POST'});
-    alert(`Berhasil! Copied ${res.copied} + Uploaded ${res.uploaded}\n\nFolder:\n`+Object.entries(res.folders).map(([k,v])=>k+': '+v).join('\n'));
+    showToast(`Berhasil! Copied ${res.copied} + Uploaded ${res.uploaded}`,'success');
     loadProjects();
     if(detailProject && detailProject.id===id) openDetail(id);
   }catch(e){ alert(e.message) }

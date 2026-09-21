@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="style.css"/>
 <style>
-  .dl-hero{max-width:520px;margin:32px auto 0;text-align:center}
+  .dl-hero{max-width:520px;margin:32px auto 0;text-align:center;padding:0 16px}
   .dl-hero h1{margin:0 0 6px;font-size:22px;font-weight:700}
   .dl-hero .sub{margin:0 0 24px;font-size:13px;color:var(--muted)}
   .dl-card{background:white;border:1px solid var(--border);border-radius:16px;padding:36px 28px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.04)}
@@ -21,13 +21,20 @@
   .dl-photo:hover{transform:scale(1.06)!important;z-index:10;box-shadow:0 12px 40px rgba(0,0,0,.2)}
   .dl-photo img{width:100%;height:100%;object-fit:cover;display:block;background:#E8E0D6}
   .dl-section-title{text-align:center;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:0 0 24px}
-  .music-toggle{position:fixed;bottom:24px;right:24px;z-index:50;width:44px;height:44px;border-radius:50%;border:1px solid var(--border);background:white;box-shadow:0 4px 16px rgba(0,0,0,.1);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s}
+  .music-toggle{position:fixed;bottom:24px;right:24px;z-index:50;width:48px;height:48px;border-radius:50%;border:1px solid var(--border);background:white;box-shadow:0 4px 16px rgba(0,0,0,.1);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s}
   .music-toggle:hover{background:var(--granads-primary);color:white;border-color:var(--granads-primary)}
   .music-toggle svg{width:20px;height:20px}
+  @media(max-width:768px){
+    .dl-hero{margin:24px auto 0}
+    .dl-card{padding:24px 20px}
+    .dl-gallery{min-height:auto;margin:32px auto 0}
+  }
   @media(max-width:600px){
-    .dl-photo{position:relative!important;width:85%!important;left:7.5%!important;height:auto!important;transform:none!important;margin-bottom:16px}
-    .dl-photo img{height:240px}
-    .dl-gallery{min-height:auto;padding:20px 0}
+    .dl-photo{position:relative!important;width:88%!important;left:6%!important;height:auto!important;transform:none!important;margin-bottom:16px}
+    .dl-photo img{height:220px}
+    .dl-gallery{min-height:auto;padding:16px 0}
+    .dl-card{padding:20px 16px}
+    .music-toggle{bottom:16px;right:16px;width:44px;height:44px}
   }
 </style>
 </head>

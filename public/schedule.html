@@ -46,6 +46,16 @@
     <a href="/porto-admin">Portofolio</a>
     <a href="/owner">Pesanan</a>
   </div>
+  <button class="hamburger" id="hamburgerBtn" aria-label="Menu" onclick="toggleMobileNav()">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+<div class="mobile-nav" id="mobileNav">
+  <a href="/projects">Projects</a>
+  <a href="/schedule" class="active">Jadwal</a>
+  <a href="/moodboard">Shoots</a>
+  <a href="/porto-admin">Portofolio</a>
+  <a href="/owner">Pesanan</a>
 </div>
 <div id="hiddenAuth" style="display:none;max-width:1100px;margin:0 auto;padding:10px 24px;background:#FFFCF8;border-bottom:1px solid var(--border);align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
   <div>
@@ -141,6 +151,17 @@ let editingId = null;
 let confirmResolve = null;
 
 function esc(s){ return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+function showToast(msg,type='info'){
+  let c=document.querySelector('.toast-container');
+  if(!c){c=document.createElement('div');c.className='toast-container';document.body.appendChild(c)}
+  const t=document.createElement('div');t.className='toast '+type;t.textContent=msg;c.appendChild(t);
+  setTimeout(()=>{t.classList.add('out');setTimeout(()=>t.remove(),300)},3000);
+}
+function toggleMobileNav(){
+  document.getElementById('hamburgerBtn').classList.toggle('open');
+  document.getElementById('mobileNav').classList.toggle('show');
+}
 async function api(path, opts={}){
   const r = await fetch(path, opts);
   const j = await r.json().catch(()=>({}));
@@ -198,7 +219,7 @@ document.getElementById('logoBrand').addEventListener('click', ()=>{
   const p=document.getElementById('hiddenAuth');
   p.style.display = p.style.display==='none' ? 'flex' : 'none';
 });
-document.getElementById('btnLogoutHidden') && (document.getElementById('btnLogoutHidden').onclick = async ()=>{ await fetch('/auth/logout',{method:'POST'}); checkAuth(); alert('Logout berhasil'); location.reload(); });
+document.getElementById('btnLogoutHidden') && (document.getElementById('btnLogoutHidden').onclick = async ()=>{ await fetch('/auth/logout',{method:'POST'}); checkAuth(); showToast('Logout berhasil','success'); location.reload(); });
 checkAuth();
 
 function showConfirm(msg){
@@ -289,8 +310,8 @@ async function saveSchedule(){
   const date = document.getElementById('schedDate').value;
   const time = document.getElementById('schedTime').value;
   const note = document.getElementById('schedNote').value.trim();
-  if(!name) return alert('Nama wajib diisi');
-  if(!date) return alert('Tanggal wajib diisi');
+  if(!name) return showToast('Nama wajib diisi','error');
+  if(!date) return showToast('Tanggal wajib diisi','error');
 
   if(editingId){
     const s = schedules.find(x=>x.id===editingId);

@@ -498,13 +498,11 @@ app.get('/api/public/schedules', async (req, res) => {
   res.json(items);
 });
 
-// --- Domain routing: granads.k3unair.com → portfolio ---
+// --- Domain routing ---
+// / → portfolio (public)
+// /owner, /projects, /schedule, /moodboard, /porto-admin → admin
 app.get('/', (req, res) => {
-  const host = (req.get('x-forwarded-host') || req.get('host') || '').split(':')[0];
-  if(host === 'granads.k3unair.com'){
-    return res.sendFile(path.join(__dirname, 'public', 'portfolio.html'));
-  }
-  res.redirect('/moodboard.html');
+  res.sendFile(path.join(__dirname, 'public', 'portfolio.html'));
 });
 
 // --- SHOOTS API (Firestore) ---
@@ -599,7 +597,7 @@ app.get('/api/bookings/:id', requireAdmin, async (req, res) => {
   res.json({ ...doc.data(), id: doc.id });
 });
 app.put('/api/bookings/:id', requireAdmin, async (req, res) => {
-  const { status, adminNote } = req.body;
+  let { status, adminNote, date, time, location } = req.body;
   const ref = bookingsCol.doc(req.params.id);
   const doc = await ref.get();
   if(!doc.exists) return res.status(404).json({ error:'Booking tidak ditemukan' });
@@ -607,28 +605,54 @@ app.put('/api/bookings/:id', requireAdmin, async (req, res) => {
   const update = {};
   if(status) update.status = status;
   if(adminNote!==undefined) update.adminNote = String(adminNote).slice(0,1000);
+  // reschedule: admin bisa atur ulang tanggal/jam/lokasi sebelum acc
+  if(date) update.date = String(date).slice(0,10);
+  if(time) update.time = String(time).slice(0,5);
+  if(location!==undefined) update.location = String(location).slice(0,200);
+  // validasi H+3 & jam bentrok jika ada perubahan tanggal/jam + mau confirmed
+  const finalDate = update.date || cur.date;
+  const finalTime = update.time || cur.time;
+  const finalStatus = update.status || cur.status;
+  if(finalStatus==='confirmed'){
+    const minD = new Date(); minD.setHours(0,0,0,0); minD.setDate(minD.getDate()+3);
+    const minStr = minD.toISOString().slice(0,10);
+    if(finalDate < minStr) return res.status(400).json({ error:`Minimal H+3 (paling cepat ${minStr}).` });
+    const daySched = await schedulesCol.where('date','==',finalDate).get();
+    const bookedTimes = daySched.docs.filter(d=> d.id !== ref.id).map(d=> (d.data().time||'').slice(0,5));
+    if(bookedTimes.includes(String(finalTime).slice(0,5))) return res.status(400).json({ error:`Jam ${finalTime} sudah booked.` });
+  }
   update.updatedAt = new Date().toISOString();
   await ref.set(update, { merge:true });
-  // auto ke Jadwal jika status jadi confirmed
+  const merged = { ...cur, ...update };
+  // auto ke Jadwal jika status jadi confirmed (pakai tanggal/jam final)
   if(status==='confirmed' && cur.status!=='confirmed'){
     const schedData = {
       id: ref.id,
-      name: cur.name,
-      location: cur.location || '',
-      date: cur.date,
-      time: cur.time,
-      note: [cur.concept?`Konsep: ${cur.concept}`:'', cur.people?`Orang: ${cur.people}`:'', cur.needs?`Kebutuhan: ${cur.needs}`:'', cur.note?`Catatan: ${cur.note}`:''].filter(Boolean).join(' | ') || cur.note || '',
-      wa: cur.wa,
-      people: cur.people,
-      concept: cur.concept,
+      name: merged.name,
+      location: merged.location || '',
+      date: merged.date,
+      time: merged.time,
+      note: [merged.concept?`Konsep: ${merged.concept}`:'', merged.people?`Orang: ${merged.people}`:'', merged.needs?`Kebutuhan: ${merged.needs}`:'', merged.note?`Catatan: ${merged.note}`:''].filter(Boolean).join(' | ') || merged.note || '',
+      wa: merged.wa,
+      people: merged.people,
+      concept: merged.concept,
       bookingId: ref.id,
       createdAt: new Date().toISOString()
     };
     await schedulesCol.doc(ref.id).set(schedData, { merge:true });
-    const shootData = { name: cur.name, date: cur.date, time: cur.time, location: cur.location||'', note: schedData.note, items:[], deliveryLink:null, deliveryFolderId:null, createdAt: new Date().toISOString(), bookingId: ref.id };
+    const shootData = { name: merged.name, date: merged.date, time: merged.time, location: merged.location||'', note: schedData.note, items:[], deliveryLink:null, deliveryFolderId:null, createdAt: new Date().toISOString(), bookingId: ref.id };
     // shoot id same as booking for easy link
     await shootsCol.doc(ref.id).set(shootData, { merge:true });
     await schedulesCol.doc(ref.id).set({ projectId: ref.id }, { merge:true });
+  } else if(cur.status==='confirmed' && (update.date || update.time || update.location!==undefined)){
+    const merged2 = { ...cur, ...update };
+    const note2 = [merged2.concept?`Konsep: ${merged2.concept}`:'', merged2.people?`Orang: ${merged2.people}`:'', merged2.needs?`Kebutuhan: ${merged2.needs}`:'', merged2.note?`Catatan: ${merged2.note}`:''].filter(Boolean).join(' | ') || merged2.note || '';
+    const schedUpdate = { note: note2 };
+    if(update.date) schedUpdate.date = update.date;
+    if(update.time) schedUpdate.time = update.time;
+    if(update.location!==undefined) schedUpdate.location = update.location;
+    await schedulesCol.doc(ref.id).set(schedUpdate, { merge:true });
+    await shootsCol.doc(ref.id).set({ date: schedUpdate.date, time: schedUpdate.time, location: schedUpdate.location, note: note2 }, { merge:true });
   }
   if(status==='cancelled' || status==='rejected'){
     // optional: hapus jadwal yang auto dibuat? keep for now

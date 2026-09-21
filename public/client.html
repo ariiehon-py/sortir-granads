@@ -14,11 +14,24 @@
 .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;z-index:50;padding:20px;touch-action:pan-y}
 .lightbox.open{display:flex}
 .lightbox img{max-width:92vw;max-height:82vh;border-radius:12px;user-select:none}
-.lb-nav{position:absolute;top:50%;transform:translateY(-50%);width:48px;height:48px;border-radius:50%;border:none;background:rgba(255,255,255,.9);font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.lb-nav:hover{background:white}
+.lb-nav{position:absolute;top:50%;transform:translateY(-50%);width:48px;height:48px;border-radius:50%;border:none;background:rgba(255,255,255,.9);font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.lb-nav:hover{background:white;transform:translateY(-50%) scale(1.1)}
 #lbPrev{left:18px}
 #lbNext{right:18px}
-@media(max-width:600px){.lb-nav{width:40px;height:40px;font-size:22px}#lbPrev{left:8px}#lbNext{right:8px}.client-header{padding:10px 16px}.client-header>div{flex-direction:column;align-items:flex-start!important;gap:10px!important}}
+@media(max-width:600px){
+  .lb-nav{width:42px;height:42px;font-size:24px}
+  #lbPrev{left:10px}
+  #lbNext{right:10px}
+  .client-header{padding:10px 16px;top:50px}
+  .client-header>div{flex-direction:column;align-items:flex-start!important;gap:10px!important}
+  .lightbox{padding:12px}
+  .lightbox img{max-width:96vw;max-height:78vh}
+}
+@media(max-width:480px){
+  .lb-nav{width:38px;height:38px;font-size:22px}
+  #lbPrev{left:6px}
+  #lbNext{right:6px}
+}
 .bulk-popup{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--granads-dark);color:white;padding:12px 16px;border-radius:16px;display:none;align-items:center;gap:10px;z-index:40;box-shadow:0 10px 30px rgba(0,0,0,.25);flex-wrap:wrap;justify-content:center;max-width:95vw}
 .bulk-popup.show{display:flex;animation:pop .2s ease}
 @keyframes pop{from{transform:translateX(-50%) translateY(10px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
@@ -31,6 +44,10 @@
 .lb-note{position:absolute;bottom:72px;left:50%;transform:translateX(-50%);width:min(92vw,520px);display:flex;gap:8px}
 .lb-note input{flex:1;padding:10px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.95);font-size:13px;outline:none}
 .lb-note input:focus{border-color:var(--granads-gold)}
+@media(max-width:600px){
+  .lb-note{bottom:80px;width:90vw}
+  .lb-note input{padding:8px 12px;font-size:12px}
+}
 </style>
 </head>
 <body>
@@ -198,7 +215,7 @@ function render(){
     const cls = v===1?'selected':v===2?'considered':'';
     const dot = v===1?'<span class="status-dot s1">DIPILIH</span>':v===2?'<span class="status-dot s2">RAGU</span>':'';
     const isChecked = checked.has(ph.id);
-    const hasNote = (v===1 && note) ? `<span class="note-indicator" title="${esc(note)}">📝 ada catatan</span>` : '';
+    const hasNote = (v===1 && note) ? `<span class="note-indicator" title="${esc(note)}">ada catatan</span>` : '';
     const noteInput = v===1 ? `<div class="photo-note-wrap" onclick="event.stopPropagation()"><input type="text" placeholder="Catatan (cerahkan, crop...)" value="${esc(note)}" oninput="setNote('${esc(ph.id)}', this.value)" onfocus="focusedId='${esc(ph.id)}'" maxlength="500"/></div>` : '';
     return `<div class="photo-card ${cls}" data-id="${esc(ph.id)}" onmouseenter="focusedId='${esc(ph.id)}'" onclick="openLightbox('${esc(ph.id)}')">
       <img src="${esc(ph.url)}" loading="lazy" onerror="this.src='https://via.placeholder.com/400x300?text=${encodeURIComponent(ph.filename)}'"/>
