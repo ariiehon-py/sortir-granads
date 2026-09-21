@@ -129,18 +129,15 @@ async function init(){
     if(directFolderId){
       project = { name:'Photo Delivery', date:null, location:null, deliveryFolderId:directFolderId };
     } else {
-      const [shoots, projects] = await Promise.all([
-        fetch('/api/shoots').then(r=>r.json()).catch(()=>[]),
-        fetch('/api/projects').then(r=>r.json()).catch(()=>[])
+      const [shootRes, projRes] = await Promise.all([
+        projectId ? fetch(`/api/public/shoots/${projectId}`).then(r=>r.ok?r.json():null).catch(()=>null) : Promise.resolve(null),
+        projectId ? fetch(`/api/public/projects/${projectId}`).then(r=>r.ok?r.json():null).catch(()=>null) : Promise.resolve(null)
       ]);
 
-      project = shoots.find(p=>p.id===projectId);
-
-      if(!project){
-        const p = projects.find(x=>x.id===projectId);
-        if(p && p.driveFolders && p.driveFolders.selected){
-          project = { name:p.clientName, date:null, location:null, deliveryFolderId:p.driveFolders.selected };
-        }
+      if(shootRes && shootRes.deliveryFolderId){
+        project = { name:shootRes.name, date:shootRes.date||null, location:shootRes.location||null, deliveryFolderId:shootRes.deliveryFolderId };
+      } else if(projRes && projRes.deliveryFolderId){
+        project = { name:projRes.clientName, date:null, location:null, deliveryFolderId:projRes.deliveryFolderId };
       }
     }
 

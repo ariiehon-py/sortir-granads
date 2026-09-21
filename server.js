@@ -517,6 +517,19 @@ app.get('/api/public/schedules', async (req, res) => {
   const items = snap.docs.map(d => ({ ...d.data(), id: d.id }));
   res.json(items);
 });
+// Public: get single shoot by id (for download page)
+app.get('/api/public/shoots/:id', async (req, res) => {
+  const doc = await shootsCol.doc(req.params.id).get();
+  if(!doc.exists) return res.status(404).json({ error: 'Shoot tidak ditemukan' });
+  res.json({ ...doc.data(), id: doc.id });
+});
+// Public: get single project by id (for download page)
+app.get('/api/public/projects/:id', async (req, res) => {
+  const doc = await projectsCol.doc(req.params.id).get();
+  if(!doc.exists) return res.status(404).json({ error: 'Project tidak ditemukan' });
+  const p = doc.data();
+  res.json({ id: p.id, clientName: p.clientName, deliveryFolderId: p.deliveryFolderId || null, deliveryLink: p.deliveryLink || null });
+});
 
 // --- Domain routing ---
 // / → portfolio (public)
