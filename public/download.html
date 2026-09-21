@@ -56,14 +56,17 @@
     <div class="dl-card">
       <h2>Momen-momen indah telah tertangkap.</h2>
       <p id="dlDesc">Saatnya menyimpannya dalam memori. Klik tombol di bawah untuk mengunduh seluruh foto dari Google Drive.</p>
-      <a id="downloadBtn" href="#" target="_blank" class="btn gold" style="text-decoration:none;display:inline-flex;align-items:center;gap:8px;padding:14px 28px;font-size:15px" onclick="handleDownload(event)">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/>
-          <line x1="12" y1="15" x2="12" y2="3"/>
-        </svg>
-        Download dari Google Drive
-      </a>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <a id="downloadBtn" href="#" target="_blank" class="btn gold" style="text-decoration:none;display:inline-flex;align-items:center;gap:8px;padding:14px 28px;font-size:15px" onclick="handleDownload(event)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Download dari Google Drive
+        </a>
+        <button class="btn ghost small" id="btnSkipTesti" style="display:none" onclick="skipTestiAndDownload()">Lewati testi, langsung download</button>
+      </div>
     </div>
   </div>
 
@@ -244,13 +247,18 @@ async function checkTestimonial(){
 
 function handleDownload(e){
   e.preventDefault();
+  if(!pendingDriveUrl) return;
   if(testimonialSubmitted || !projectId){
-    // langsung buka drive
-    window.open(pendingDriveUrl, '_blank');
+    location.href = pendingDriveUrl;
     return;
   }
   // buka modal testimoni
   document.getElementById('testiModal').style.display = 'flex';
+}
+
+function skipTestiAndDownload(){
+  testimonialSubmitted = true;
+  location.href = pendingDriveUrl;
 }
 
 // Star rating
@@ -290,7 +298,9 @@ async function submitTestimonial(){
     testimonialSubmitted = true;
     document.getElementById('testiModal').style.display = 'none';
     document.getElementById('dlDesc').textContent = 'Terima kasih sudah memberikan testimoni! Klik tombol di bawah untuk mengunduh foto.';
-    window.open(pendingDriveUrl, '_blank');
+    document.getElementById('btnSkipTesti').style.display = 'none';
+    // redirect langsung ke Drive (bukan window.open yg diblock popup blocker)
+    location.href = pendingDriveUrl;
   }catch(e){
     errEl.textContent = e.message;
     errEl.style.display = 'block';
