@@ -68,9 +68,10 @@ textarea{resize:vertical;min-height:72px}
 .cal-day.booked{opacity:.5}
 .cal-day .num{font-weight:700;margin-bottom:3px}
 .cal-day .dot{font-size:9px;background:var(--granads-primary);color:white;border-radius:4px;padding:1px 4px;display:inline-block;margin-top:2px}
-.month-nav{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.month-nav button{width:30px;height:30px;border:1px solid var(--border);border-radius:8px;background:white;cursor:pointer}
-.month-nav b{font-size:14px}
+.month-nav{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.month-nav select{padding:5px 8px;border:1px solid var(--border);border-radius:8px;font-size:12px;background:white;cursor:pointer}
+.month-nav button{width:30px;height:30px;border:1px solid var(--border);border-radius:8px;background:white;cursor:pointer;font-size:14px}
+.month-nav b{font-size:14px;display:none}
 .time-opt[disabled]{color:#9CA3AF}
 .simple-footer{text-align:center;padding:22px 24px;border-top:1px solid #E8E0D6;background:var(--granads-cream);color:var(--muted);font-size:12px;margin-top:40px}
 .simple-footer .footer-brand{font-family:Georgia,'Times New Roman',serif;font-size:22px;font-weight:800;color:var(--granads-primary)}
@@ -128,6 +129,16 @@ textarea{resize:vertical;min-height:72px}
           </div>
         </div>
         <div>
+          <label>Durasi Foto *</label>
+          <select id="fDuration" required>
+            <option value="">Pilih durasi</option>
+            <option value="30">30 Menit</option>
+            <option value="60">1 Jam</option>
+            <option value="120">2 Jam</option>
+            <option value="180">3 Jam</option>
+          </select>
+        </div>
+        <div>
           <label>Lokasi</label>
           <input id="fLocation" placeholder="Alamat / lokasi foto"/>
         </div>
@@ -155,10 +166,9 @@ textarea{resize:vertical;min-height:72px}
     <div>
       <div class="card">
         <div class="month-nav">
-          <button onclick="changeMonth(-1)">‹</button>
-          <b id="monthTitle"></b>
-          <button onclick="changeMonth(1)">›</button>
-          <button class="btn-ghost" style="margin-left:auto;padding:6px 10px;font-size:11px;border-radius:8px" onclick="goToday()">Hari ini</button>
+          <select id="calMonth" onchange="onCalMonthChange()"></select>
+          <select id="calYear" onchange="onCalYearChange()"></select>
+          <button class="btn-ghost" style="padding:6px 10px;font-size:11px;border-radius:8px" onclick="goToday()">Hari ini</button>
         </div>
         <div class="calendar" id="calendar"></div>
         <p class="hint" style="margin-top:10px">Klik tanggal di kalender untuk isi form. Jam yang sudah terisi tidak bisa dipilih (sinkron agenda).</p>
@@ -184,6 +194,7 @@ function toggleBMobileNav(){
 let schedules=[];
 let currentDate=new Date();
 let selectedDate='';
+const monthNames=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 function getMinDateStr(){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+3);return d.toISOString().slice(0,10)}
 const timeSlots=[];for(let h=7;h<=20;h++){for(let m of [0,30]){timeSlots.push(String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'))}}
 function buildTimeOptions(disabledSet){
@@ -193,9 +204,28 @@ function buildTimeOptions(disabledSet){
     return `<option value="${t}" ${dis?'disabled':''}>${t}${dis?' — Booked':''}</option>`;
   }).join('');
 }
+function initCalDropdowns(){
+  const mSel=document.getElementById('calMonth');
+  const ySel=document.getElementById('calYear');
+  mSel.innerHTML=monthNames.map((m,i)=>`<option value="${i}">${m}</option>`).join('');
+  const thisYear=new Date().getFullYear();
+  let yOpts='';
+  for(let y=thisYear-1;y<=thisYear+2;y++) yOpts+=`<option value="${y}"${y===currentDate.getFullYear()?' selected':''}>${y}</option>`;
+  ySel.innerHTML=yOpts;
+  mSel.value=currentDate.getMonth();
+}
+function onCalMonthChange(){
+  currentDate.setMonth(parseInt(document.getElementById('calMonth').value));
+  renderCalendar();
+}
+function onCalYearChange(){
+  currentDate.setFullYear(parseInt(document.getElementById('calYear').value));
+  renderCalendar();
+}
 async function init(){
   try{schedules=await fetch('/api/public/schedules').then(r=>r.json())}catch{schedules=[]}
   const min=getMinDateStr();document.getElementById('fDate').min=min;
+  initCalDropdowns();
   renderCalendar();updateDayInfo();buildTimeOptions(new Set());
   document.getElementById('fDate').addEventListener('change', onDateChange);
   document.getElementById('fTime').addEventListener('change', validateTime);
@@ -233,8 +263,9 @@ function getBookedTimes(dateStr){
 }
 function renderCalendar(){
   const year=currentDate.getFullYear(), month=currentDate.getMonth();
-  const months=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-  document.getElementById('monthTitle').textContent=months[month]+' '+year;
+  // sync dropdowns
+  document.getElementById('calMonth').value=month;
+  document.getElementById('calYear').value=year;
   const firstDay=new Date(year,month,1).getDay();
   const daysInMonth=new Date(year,month+1,0).getDate();
   const today=new Date();
@@ -267,8 +298,7 @@ function pickDate(dateStr){
   selectedDate=dateStr;
   onDateChange();
 }
-function changeMonth(d){currentDate.setMonth(currentDate.getMonth()+d);renderCalendar()}
-function goToday(){currentDate=new Date();renderCalendar()}
+function goToday(){currentDate=new Date();initCalDropdowns();renderCalendar()}
 document.getElementById('bookingForm').addEventListener('submit', async (e)=>{
   e.preventDefault();
   const payload={
@@ -276,13 +306,14 @@ document.getElementById('bookingForm').addEventListener('submit', async (e)=>{
     wa:document.getElementById('fWa').value.trim(),
     date:document.getElementById('fDate').value,
     time:document.getElementById('fTime').value,
+    duration:document.getElementById('fDuration').value,
     location:document.getElementById('fLocation').value.trim(),
     people:document.getElementById('fPeople').value.trim(),
     concept:document.getElementById('fConcept').value.trim(),
     needs:document.getElementById('fNeeds').value.trim(),
     note:document.getElementById('fNote').value.trim()
   };
-  if(!payload.name||!payload.wa||!payload.date||!payload.time) return;
+  if(!payload.name||!payload.wa||!payload.date||!payload.time||!payload.duration) return;
   if(payload.date < getMinDateStr()){document.getElementById('dateWarn').textContent=`Minimal H+3 (paling cepat ${getMinDateStr()}).`;document.getElementById('dateWarn').style.display='block';return;}
   if(getBookedTimes(payload.date).includes(payload.time)){
     document.getElementById('timeWarn').textContent='Jam ini sudah booked, pilih jam lain.';document.getElementById('timeWarn').style.display='block';return;
