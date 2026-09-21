@@ -69,12 +69,12 @@ const TOKEN_FILE = path.join(DATA_DIR, 'google_tokens.json');
 function loadTokens(){ if(!fs.existsSync(TOKEN_FILE)) return null; try{ return JSON.parse(fs.readFileSync(TOKEN_FILE,'utf8')) }catch{ return null } }
 function saveTokens(t){ fs.writeFileSync(TOKEN_FILE, JSON.stringify(t,null,2)) }
 
-function getOAuthClient(){
+function getOAuthClient(redirectUri){
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-  const redirectUri = process.env.GOOGLE_REDIRECT_URI || `http://localhost:${PORT}/auth/callback`;
+  const uri = redirectUri || process.env.GOOGLE_REDIRECT_URI || `http://localhost:${PORT}/auth/callback`;
   if(!clientId || !clientSecret) return null;
-  return new google.auth.OAuth2(clientId, clientSecret, redirectUri);
+  return new google.auth.OAuth2(clientId, clientSecret, uri);
 }
 
 function getDriveClient(){
@@ -159,7 +159,10 @@ function getProjectPhotos(project) {
 // --- AUTH ---
 app.get('/auth/status', (req,res)=>{
   const tokens = loadTokens();
-  const oauth = getOAuthClient();
+  const host = req.get('host');
+  const proto = req.headers['x-forwarded-proto'] || req.protocol;
+  const baseUrl = host ? `${proto}://${host}` : `http://localhost:${PORT}`;
+  const oauth = getOAuthClient(`${baseUrl}/auth/callback`);
   const email = tokens?.email || null;
   res.json({
     configured: !!oauth,
@@ -168,12 +171,15 @@ app.get('/auth/status', (req,res)=>{
     isAdmin: isAdminEmail(email),
     allowed: ALLOWED_EMAILS,
     hasApiKey: !!process.env.GOOGLE_API_KEY,
-    redirectUri: process.env.GOOGLE_REDIRECT_URI || `http://localhost:${PORT}/auth/callback`
+    redirectUri: `${baseUrl}/auth/callback`
   });
 });
 
 app.get('/auth/login', (req,res)=>{
-  const oauth2 = getOAuthClient();
+  const host = req.get('host');
+  const proto = req.headers['x-forwarded-proto'] || req.protocol;
+  const baseUrl = host ? `${proto}://${host}` : `http://localhost:${PORT}`;
+  const oauth2 = getOAuthClient(`${baseUrl}/auth/callback`);
   if(!oauth2) return res.status(400).send('GOOGLE_CLIENT_ID / SECRET belum di-set. Cek .env.example');
   const url = oauth2.generateAuthUrl({
     access_type: 'offline',
@@ -187,7 +193,10 @@ app.get('/auth/callback', async (req,res)=>{
   const code = req.query.code;
   if(!code) return res.status(400).send('Missing code');
   try{
-    const oauth2 = getOAuthClient();
+    const host = req.get('host');
+    const proto = req.headers['x-forwarded-proto'] || req.protocol;
+    const baseUrl = host ? `${proto}://${host}` : `http://localhost:${PORT}`;
+    const oauth2 = getOAuthClient(`${baseUrl}/auth/callback`);
     const { tokens } = await oauth2.getToken(code);
     oauth2.setCredentials(tokens);
     let email = null;
