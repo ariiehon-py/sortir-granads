@@ -209,7 +209,7 @@ async function checkAuth(){
     const btnLogin = document.getElementById('btnLoginHidden');
     if(hint){
       if(s.isAdmin) hint.textContent = `Login sebagai ${s.email} — akses owner aktif`;
-      else if(s.loggedIn) hint.textContent = `Login sebagai ${s.email} — bukan admin (${s.allowed.join(', ')})`;
+      else if(s.loggedIn) hint.textContent = `Login sebagai ${s.email} — bukan admin`;
       else if(s.configured) hint.textContent = 'Belum login — klik Login Google (hanya nadhasantika63@gmail.com / granadds@gmail.com)';
       else hint.textContent = 'OAuth belum dikonfigurasi';
       if(btnLogin) btnLogin.textContent = s.loggedIn ? 'Ganti Akun' : 'Login Google';

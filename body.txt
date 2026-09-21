@@ -1,0 +1,1 @@
+{"error":"Unauthorized: admin token required. Set header x-admin-token"}

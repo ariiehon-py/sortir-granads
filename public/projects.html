@@ -186,7 +186,7 @@ async function checkAuth(){
     const btnLogin = document.getElementById('btnLoginHidden');
     if(hint){
       if(s.isAdmin) hint.textContent = `Login sebagai ${s.email} — akses owner aktif`;
-      else if(s.loggedIn) hint.textContent = `Login sebagai ${s.email} — bukan admin (${s.allowed.join(', ')})`;
+      else if(s.loggedIn) hint.textContent = `Login sebagai ${s.email} — bukan admin`;
       else if(s.configured) hint.textContent = 'Belum login — klik Login Google (hanya nadhasantika63@gmail.com / granadds@gmail.com)';
       else hint.textContent = 'OAuth belum dikonfigurasi';
       if(btnLogin) btnLogin.textContent = s.loggedIn ? 'Ganti Akun' : 'Login Google';
@@ -197,8 +197,8 @@ async function checkAuth(){
       if(!s.isAdmin){
         gate.style.display='block';
         gate.innerHTML = s.loggedIn
-          ? `<div class="card" style="text-align:center;padding:32px"><h3>Akses Ditolak</h3><p class="hint">Login sebagai <b>${esc(s.email)}</b> tidak diizinkan.<br>Hanya <b>${esc(s.allowed.join(', '))}</b> yang boleh.</p><div style="display:flex;gap:8px;justify-content:center;margin-top:12px"><a href="/auth/login" class="btn gold small">Ganti Akun</a><button class="btn ghost small" onclick="fetch('/auth/logout',{method:'POST'}).then(()=>location.reload())">Logout</button></div></div>`
-          : `<div class="card" style="text-align:center;padding:32px"><h3>Login Diperlukan</h3><p class="hint">Halaman owner hanya untuk <b>${esc(s.allowed.join(', '))}</b></p><a href="/auth/login" class="btn gold">Login dengan Google</a></div>`;
+          ? `<div class="card" style="text-align:center;padding:32px"><h3>Akses Ditolak</h3><p class="hint">Login sebagai <b>${esc(s.email)}</b> tidak diizinkan.</p><div style="display:flex;gap:8px;justify-content:center;margin-top:12px"><a href="/auth/login" class="btn gold small">Ganti Akun</a><button class="btn ghost small" onclick="fetch('/auth/logout',{method:'POST'}).then(()=>location.reload())">Logout</button></div></div>`
+          : `<div class="card" style="text-align:center;padding:32px"><h3>Login Diperlukan</h3><p class="hint">Halaman ini hanya untuk admin.</p><a href="/auth/login" class="btn gold">Login dengan Google</a></div>`;
         if(main) main.style.display='none';
       } else {
         gate.style.display='none';
