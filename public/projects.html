@@ -95,6 +95,15 @@
       <span class="hint" id="detailHint"></span>
       <button class="btn small ghost" id="btnDownloadJson" style="margin-left:auto">Download JSON</button>
     </div>
+    <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
+      <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px">LINK DELIVERY (Foto Edited)</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <input id="deliveryLinkInput" placeholder="https://drive.google.com/drive/folders/..." style="flex:1;min-width:200px"/>
+        <button class="btn small" id="btnSaveDelivery" onclick="saveDeliveryLink()">Simpan</button>
+        <button class="btn small ghost" id="btnCopyDelivery" onclick="copyDeliveryLink()" style="display:none">Copy Link Client</button>
+      </div>
+      <div class="hint" id="deliveryHint" style="font-size:11px;margin-top:4px"></div>
+    </div>
   </div>
 </div>
 
@@ -291,6 +300,17 @@ async function openDetail(id){
   document.querySelectorAll('#detailFilters button').forEach(b=>b.classList.toggle('active', b.dataset.f==='all'));
   document.getElementById('detailSection').style.display='block';
   document.getElementById('detailTitle').textContent = `${p.clientName} — ${p.photos.length} foto • Maks ${p.maxSelection}`;
+  // load delivery link
+  document.getElementById('deliveryLinkInput').value = p.deliveryLink || '';
+  if(p.deliveryFolderId){
+    const dlUrl = `${location.origin}/download?id=${p.id}`;
+    document.getElementById('deliveryHint').innerHTML = `Delivery aktif: <a href="${dlUrl}" target="_blank" style="color:var(--granads-primary)">${dlUrl}</a>`;
+    document.getElementById('btnCopyDelivery').style.display='inline-flex';
+    document.getElementById('btnCopyDelivery').dataset.url = dlUrl;
+  } else {
+    document.getElementById('deliveryHint').textContent = 'Belum ada delivery link.';
+    document.getElementById('btnCopyDelivery').style.display='none';
+  }
   const _selVals = Object.values(p.selections||{});
   document.getElementById('detailHint').textContent = `Terpilih ${ _selVals.filter(v=>selVal(v)===1).length}/${p.maxSelection}${ _selVals.filter(v=>selNote(v)).length ? ` • ${_selVals.filter(v=>selNote(v)).length} catatan` : ''}`;
   if(p.driveFolders){
@@ -421,6 +441,30 @@ async function saveDriveLink(){
     alert('Link Drive berhasil diupdate!');
     loadProjects();
   }catch(e){ alert(e.message) }
+}
+
+async function saveDeliveryLink(){
+  if(!detailProject) return;
+  const link = document.getElementById('deliveryLinkInput').value.trim();
+  if(!link) return alert('Link tidak boleh kosong');
+  const folderId = link.match(/\/folders\/([a-zA-Z0-9-_]+)/)?.[1] || null;
+  if(!folderId) return alert('Link tidak valid. Paste link folder Drive.');
+  try{
+    await api(`/api/projects/${detailProject.id}/delivery`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({deliveryLink: link, deliveryFolderId: folderId})});
+    showToast('Delivery link tersimpan!','success');
+    detailProject.deliveryLink = link;
+    detailProject.deliveryFolderId = folderId;
+    const dlUrl = `${location.origin}/download?id=${detailProject.id}`;
+    document.getElementById('deliveryHint').innerHTML = `Delivery aktif: <a href="${dlUrl}" target="_blank" style="color:var(--granads-primary)">${dlUrl}</a>`;
+    document.getElementById('btnCopyDelivery').style.display='inline-flex';
+    document.getElementById('btnCopyDelivery').dataset.url = dlUrl;
+  }catch(e){ alert(e.message) }
+}
+function copyDeliveryLink(){
+  const url = document.getElementById('btnCopyDelivery').dataset.url;
+  if(url){
+    navigator.clipboard.writeText(url).then(()=>showToast('Link copied!','success')).catch(()=>showToast('Gagal copy','error'));
+  }
 }
 </script>
 </body>

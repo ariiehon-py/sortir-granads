@@ -307,6 +307,17 @@ app.get('/api/folder/:folderId/photos', async (req, res) => {
   }
 });
 
+// --- Delivery link (edited photos) ---
+app.post('/api/projects/:id/delivery', requireAdmin, async (req, res) => {
+  const { deliveryLink, deliveryFolderId } = req.body;
+  if(!deliveryLink || !deliveryFolderId) return res.status(400).json({ error: 'deliveryLink dan deliveryFolderId wajib' });
+  const ref = projectsCol.doc(req.params.id);
+  const doc = await ref.get();
+  if(!doc.exists) return res.status(404).json({ error: 'Project tidak ditemukan' });
+  await ref.set({ deliveryLink, deliveryFolderId }, { merge: true });
+  res.json({ ok: true });
+});
+
 app.post('/api/projects/:id/selections', async (req, res) => {
   let { selections } = req.body;
   // sanitasi: catatan hanya untuk yang Dipilih (v===1)
@@ -842,6 +853,37 @@ app.put('/api/admin/testimoni-reorder', requireAdmin, async (req,res)=>{
   orderedIds.forEach((id,i)=> batch.set(testiCol.doc(id), {order:i}, {merge:true}));
   await batch.commit();
   res.json({ok:true});
+});
+
+// --- CLIENT TESTIMONIAL (public, no auth) ---
+// Client submits testimonial from download page → auto-masuk ke testi public
+app.post('/api/client-testimonial', async (req, res) => {
+  let { projectId, name, text, stars, clientEmail } = req.body;
+  if(!text || !String(text).trim()) return res.status(400).json({ error: 'Testimoni wajib' });
+  if(!projectId) return res.status(400).json({ error: 'projectId wajib' });
+  // check sudah submit?
+  const existing = await db.collection('clientTestimonials').where('projectId','==',projectId).limit(1).get();
+  if(!existing.empty) return res.status(400).json({ error: 'Anda sudah mengirim testimoni untuk project ini' });
+  name = String(name||'').trim().slice(0,60) || 'Klien';
+  text = String(text).trim().slice(0,800);
+  stars = Math.max(1, Math.min(5, parseInt(stars)||5));
+  clientEmail = String(clientEmail||'').trim().slice(0,100);
+  const data = { projectId, name, text, stars, clientEmail, createdAt: new Date().toISOString() };
+  const ref = await db.collection('clientTestimonials').add(data);
+  await ref.set({ id: ref.id }, { merge: true });
+  // auto-insert ke testimonials collection (public display)
+  const testiCount = (await testiCol.get()).size;
+  await testiCol.add({ text, name, role: '', stars, order: testiCount, createdAt: new Date().toISOString(), source: 'client', projectId });
+  // update project: tandai sudah testimonial
+  await projectsCol.doc(projectId).set({ clientTestimonial: { name, text, stars, createdAt: new Date().toISOString() } }, { merge: true });
+  res.json({ ok: true, id: ref.id });
+});
+// Check apakah project sudah punya testimonial
+app.get('/api/projects/:id/testimonial', async (req, res) => {
+  const snap = await db.collection('clientTestimonials').where('projectId','==',req.params.id).limit(1).get();
+  if(snap.empty) return res.json({ submitted: false });
+  const d = snap.docs[0].data();
+  res.json({ submitted: true, testimonial: d });
 });
 
 app.use('/uploads', express.static(UPLOAD_DIR));
