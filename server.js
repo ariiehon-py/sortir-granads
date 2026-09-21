@@ -593,7 +593,7 @@ app.delete('/api/schedules/:id', requireAdmin, async (req, res) => {
 // --- BOOKINGS API (Firestore) ---
 // Public: create booking
 app.post('/api/bookings', async (req, res) => {
-  let { name, wa, date, time, location, people, concept, needs, note } = req.body;
+  let { name, wa, date, time, duration, location, people, concept, needs, note } = req.body;
   if(!name || !String(name).trim()) return res.status(400).json({ error: 'Nama wajib' });
   if(!wa || !String(wa).trim()) return res.status(400).json({ error: 'No WA wajib' });
   if(!date) return res.status(400).json({ error: 'Tanggal wajib' });
@@ -615,7 +615,7 @@ app.post('/api/bookings', async (req, res) => {
   if(bookedTimes.includes(String(time).slice(0,5))){
     return res.status(400).json({ error: `Jam ${time} sudah booked. Pilih jam lain.` });
   }
-  const data = { name, wa, date, time: String(time).slice(0,5), location, people, concept, needs, note, status:'pending', createdAt: new Date().toISOString() };
+  const data = { name, wa, date, time: String(time).slice(0,5), duration: String(duration||'60'), location, people, concept, needs, note, status:'pending', createdAt: new Date().toISOString() };
   const ref = await bookingsCol.add(data);
   res.json({ id: ref.id, ...data });
 });
