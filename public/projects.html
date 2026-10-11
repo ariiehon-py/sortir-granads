@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Granads — Projects</title>
+<title>Granads: Projects</title>
 <link rel="icon" href="/assets/logo/favicon/favicon.ico" type="image/x-icon"/><link rel="apple-touch-icon" href="/assets/logo/logo.png"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -173,7 +173,7 @@ async function api(path, opts={}){
   const r = await fetch(path, opts);
   const j = await r.json().catch(()=>({}));
   if(!r.ok){
-    if(r.status===401) throw new Error(j.error||'Belum login Google — klik logo Granads lalu Login Google');
+    if(r.status===401) throw new Error(j.error||'Belum login Google. Klik logo Granads lalu Login Google');
     if(r.status===403) throw new Error(j.error||'Akses ditolak');
     throw new Error(j.error||j.message||'Error');
   }
@@ -194,9 +194,9 @@ async function checkAuth(){
     const hint = document.getElementById('authHintHidden');
     const btnLogin = document.getElementById('btnLoginHidden');
     if(hint){
-      if(s.isAdmin) hint.textContent = `Login sebagai ${s.email} — akses owner aktif`;
-      else if(s.loggedIn) hint.textContent = `Login sebagai ${s.email} — bukan admin`;
-      else if(s.configured) hint.textContent = 'Belum login — klik Login Google (hanya nadhasantika63@gmail.com / granadds@gmail.com)';
+      if(s.isAdmin) hint.textContent = `Login sebagai ${s.email}: akses owner aktif`;
+      else if(s.loggedIn) hint.textContent = `Login sebagai ${s.email}: bukan admin`;
+      else if(s.configured) hint.textContent = 'Belum login. Klik Login Google (hanya nadhasantika63@gmail.com / granadds@gmail.com)';
       else hint.textContent = 'OAuth belum dikonfigurasi';
       if(btnLogin) btnLogin.textContent = s.loggedIn ? 'Ganti Akun' : 'Login Google';
     }
@@ -299,7 +299,7 @@ async function openDetail(id){
   detailFilter = 'all';
   document.querySelectorAll('#detailFilters button').forEach(b=>b.classList.toggle('active', b.dataset.f==='all'));
   document.getElementById('detailSection').style.display='block';
-  document.getElementById('detailTitle').textContent = `${p.clientName} — ${p.photos.length} foto • Maks ${p.maxSelection}`;
+  document.getElementById('detailTitle').textContent = `${p.clientName}: ${p.photos.length} foto • Maks ${p.maxSelection}`;
   // load delivery link
   document.getElementById('deliveryLinkInput').value = p.deliveryLink || '';
   if(p.deliveryFolderId){
@@ -327,7 +327,7 @@ async function openDetail(id){
   if(selectedPhotos.length > 0){
     selectedList.innerHTML = selectedPhotos.map(ph => {
       const n = selNote(sel[ph.id]);
-      return n ? `${esc(ph.filename)} — <span style="color:#8C0009">${esc(n)}</span>` : esc(ph.filename);
+      return n ? `${esc(ph.filename)}: <span style="color:#8C0009">${esc(n)}</span>` : esc(ph.filename);
     }).join('<br>');
     selectedBox.style.display = 'block';
   } else {

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Granads — Shoots</title>
+<title>Granads: Shoots</title>
 <link rel="icon" href="/assets/logo/favicon/favicon.ico" type="image/x-icon"/><link rel="apple-touch-icon" href="/assets/logo/logo.png"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -208,9 +208,9 @@ async function checkAuth(){
     const hint = document.getElementById('authHintHidden');
     const btnLogin = document.getElementById('btnLoginHidden');
     if(hint){
-      if(s.isAdmin) hint.textContent = `Login sebagai ${s.email} — akses owner aktif`;
-      else if(s.loggedIn) hint.textContent = `Login sebagai ${s.email} — bukan admin`;
-      else if(s.configured) hint.textContent = 'Belum login — klik Login Google (hanya nadhasantika63@gmail.com / granadds@gmail.com)';
+      if(s.isAdmin) hint.textContent = `Login sebagai ${s.email}: akses owner aktif`;
+      else if(s.loggedIn) hint.textContent = `Login sebagai ${s.email}: bukan admin`;
+      else if(s.configured) hint.textContent = 'Belum login. Klik Login Google (hanya nadhasantika63@gmail.com / granadds@gmail.com)';
       else hint.textContent = 'OAuth belum dikonfigurasi';
       if(btnLogin) btnLogin.textContent = s.loggedIn ? 'Ganti Akun' : 'Login Google';
     }

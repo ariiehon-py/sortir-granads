@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Granads: Sewa Kamera</title>
+<link rel="icon" href="/assets/logo/favicon/favicon.ico" type="image/x-icon"/><link rel="apple-touch-icon" href="/assets/logo/logo.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{--granads-primary:#8C0009;--granads-gold:#C9A86A;--granads-dark:#1A1A1E;--granads-cream:#FFF9F0;--border:#E8E0D6;--muted:#6B7280}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Space Grotesk',system-ui,sans-serif}
+body{background:var(--granads-cream);color:var(--granads-dark)}
+.navbar{position:fixed;top:0;left:0;right:0;z-index:50;padding:14px 28px;display:flex;justify-content:space-between;align-items:center;background:rgba(255,249,240,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.nav-brand img{height:28px;width:auto;object-fit:contain}
+.nav-links{display:flex;gap:6px}
+.nav-links a{text-decoration:none;font-size:13px;padding:7px 13px;border-radius:999px;color:var(--granads-dark);font-weight:500}
+.nav-links a:hover,.nav-links a.active{background:var(--granads-primary);color:white}
+.r-hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:8px;border-radius:8px;background:none;border:none}
+.r-hamburger span{display:block;width:22px;height:2px;background:var(--granads-dark);border-radius:2px;transition:transform .3s,opacity .3s}
+.r-hamburger.open span:nth-child(1){transform:rotate(45deg) translate(5px,5px)}
+.r-hamburger.open span:nth-child(2){opacity:0}
+.r-hamburger.open span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px)}
+.r-mobile-nav{display:none;position:fixed;top:60px;left:0;right:0;background:rgba(255,249,240,.98);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:12px 24px;z-index:55;flex-direction:column;gap:4px;box-shadow:0 8px 24px rgba(0,0,0,.08)}
+.r-mobile-nav.show{display:flex}
+.r-mobile-nav a{text-decoration:none;padding:12px 16px;border-radius:12px;font-size:14px;font-weight:500;color:var(--granads-dark)}
+.r-mobile-nav a:hover,.r-mobile-nav a.active{background:var(--granads-primary);color:white}
+@media(max-width:768px){.navbar{padding:10px 16px}.nav-links{display:none}.r-hamburger{display:flex}}
+.container{max-width:1100px;margin:0 auto;padding:90px 24px 40px}
+.rent-single{max-width:640px;margin:0 auto}
+.rent-card h1{font-size:22px;font-weight:800;margin-bottom:6px}
+.rent-card{background:white;border:1px solid var(--border);border-radius:18px;padding:22px}
+.rent-card h4{font-size:15px;font-weight:800;margin-bottom:12px}
+.rent-card label{font-size:12px;font-weight:600;margin-bottom:6px;display:block;color:#374151}
+.rent-card input,.rent-card select,.rent-card textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:13px;background:white;outline:none;margin-bottom:12px}
+.rent-card input:focus,.rent-card select:focus,.rent-card textarea:focus{border-color:var(--granads-primary);box-shadow:0 0 0 3px rgba(140,0,9,.08)}
+.rent-card textarea{resize:vertical}
+@media(max-width:768px){.container{padding:80px 16px 32px}.rent-card{padding:16px}}
+.btn{padding:11px 18px;border-radius:999px;font-size:13px;font-weight:700;border:none;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;gap:8px}
+.btn-primary{background:var(--granads-primary);color:white}
+.btn-outline{background:transparent;color:var(--granads-primary);border:1.5px solid var(--granads-primary)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.hint{font-size:12px;color:var(--muted)}
+.rent-card{display:flex;flex-direction:column}
+.member-ok{background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:10px 12px;font-size:12px;margin-bottom:12px}
+.member-wait{background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:10px 12px;font-size:12px;margin-bottom:12px}
+.pop-row{display:flex;justify-content:space-between;gap:12px;font-size:13px;padding:7px 0;border-bottom:1px solid var(--border)}
+.pop-row span{color:var(--muted)}
+.pop-note{font-size:13px;color:var(--granads-dark);margin:12px 0 0;line-height:1.6}
+.simple-footer{text-align:center;padding:22px 24px;border-top:1px solid #E8E0D6;background:var(--granads-cream);color:var(--muted);font-size:12px;margin-top:40px}
+.simple-footer .footer-brand{font-family:Georgia,'Times New Roman',serif;font-size:22px;font-weight:800;color:var(--granads-primary)}
+.simple-footer .footer-brand .footer-copy{font-family:'Space Grotesk',system-ui,sans-serif;font-size:11px;font-weight:400;color:#6B6B6B;margin-left:6px;vertical-align:middle}
+.simple-footer .footer-brand .footer-copy a{color:var(--granads-primary);text-decoration:underline;text-underline-offset:3px;font-weight:600}
+.simple-footer .footer-socials{display:flex;gap:18px;justify-content:center;margin-top:10px}
+.simple-footer .footer-socials svg{width:22px;height:22px;fill:var(--granads-primary)}
+</style>
+</head>
+<body>
+<nav class="navbar">
+  <a href="/portfolio" class="nav-brand"><img src="assets/logo/logo.png" alt="Granads"/></a>
+  <div class="nav-links">
+    <a href="/portfolio#porto">Porto</a>
+    <a href="/rent" class="active">Sewa</a>
+    <a href="/book">Book</a>
+  </div>
+  <button class="r-hamburger" id="rHamburger" aria-label="Menu" onclick="toggleRMobileNav()">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+<div class="r-mobile-nav" id="rMobileNav">
+  <a href="/portfolio#porto">Porto</a>
+  <a href="/rent" class="active">Sewa</a>
+  <a href="/book">Book</a>
+</div>
+
+<div class="container">
+  <div class="rent-single">
+    <div class="rent-card">
+      <h1>sewa @granadds</h1>
+      <p class="hint" style="margin-bottom:18px">Isi form di bawah, owner akan screening dan konfirmasi via WhatsApp.</p>
+      <form id="rentForm" style="display:grid;gap:14px">
+      <div><label>Nama *</label><input id="mName" required placeholder="Nama lengkap"/></div>
+      <div><label>No WA *</label><input id="mWa" required type="tel" placeholder="08xxxxxxxxxx"/></div>
+      <div><label>Akun IG *</label><input id="mIg" required placeholder="@username"/></div>
+      <div><label>Apakah kamu teman owner atau temannya teman owner? *</label>
+        <select id="mRelation" required>
+          <option value="">Pilih salah satu</option>
+          <option value="teman_owner">Teman owner langsung</option>
+          <option value="teman_dari_teman">Temannya teman owner</option>
+          <option value="bukan">Bukan keduanya</option>
+        </select>
+      </div>
+      <div id="mReferrerWrap" style="display:none"><label>Siapa nama teman owner yang mereferensikanmu? *</label><input id="mReferrer" placeholder="Nama referensi"/></div>
+      <div><label>Jaminan *</label>
+        <select id="mJaminan">
+          <option value="ktp">KTP</option>
+          <option value="sim">SIM</option>
+          <option value="deposit">Deposit</option>
+        </select>
+      </div>
+      <div><label>Buat apa sewanya?</label><textarea id="mNeed" rows="2" placeholder="Contoh: foto wisuda tanggal 20"></textarea></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div><label>Paket *</label>
+          <select id="rPackage">
+            <option value="kamera">Kamera A6400 (120k/hari)</option>
+            <option value="lensa">Lensa 35mm (50k/hari)</option>
+            <option value="bundle">Bundle (150k/hari)</option>
+          </select>
+        </div>
+        <div><label>Lama (hari) *</label>
+          <select id="rDays">
+            <option value="1">1 hari</option><option value="2">2 hari</option><option value="3">3 hari</option><option value="4">4 hari</option><option value="5">5 hari</option><option value="6">6 hari</option><option value="7">7 hari</option>
+          </select>
+        </div>
+      </div>
+      <div><label>Tanggal ambil *</label><input id="rStart" type="date" required/></div>
+      <div class="hint" id="rTotal" style="font-weight:700;color:var(--granads-primary)"></div>
+      <div><label>Catatan</label><textarea id="rNote" rows="2" placeholder="Jam ambil, lokasi, dan lainnya"></textarea></div>
+      <button type="submit" class="btn btn-primary" id="btnRent" style="width:100%;justify-content:center">Ajukan Sewa</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="rentPopup" style="display:none;position:fixed;inset:0;background:rgba(26,26,30,.55);z-index:100;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--granads-cream);border-radius:20px;max-width:420px;width:100%;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.25);border-top:6px solid var(--granads-primary)">
+    <div style="padding:22px 24px 6px;text-align:center">
+      <div id="rentPopupIcon" style="width:52px;height:52px;border-radius:50%;background:var(--granads-gold);color:white;font-size:24px;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 12px">✓</div>
+      <h3 id="rentPopupTitle" style="font-size:17px;margin-bottom:10px"></h3>
+      <div id="rentPopupBody" style="text-align:left"></div>
+    </div>
+    <div style="padding:14px 24px 24px"><button type="button" class="btn btn-primary" style="width:100%;justify-content:center" onclick="closeRentPopup()">Tutup</button></div>
+  </div>
+</div>
+
+<footer class="simple-footer">
+  <div class="footer-brand">Granads. <span class="footer-copy">© 2026 <a href="https://instagram.com/granads" target="_blank">Granads</a></span></div>
+  <div class="footer-socials">
+    <a href="https://wa.me/6281234567890" target="_blank" aria-label="WA"><svg viewBox="0 0 24 24"><path d="M12.04 2.02c-5.46 0-9.91 4.44-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.44 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2.02Zm0 16.6a8.2 8.2 0 0 1-4.18-1.14l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.32A8.2 8.2 0 0 1 12.04 3.22c2.2 0 4.27.86 5.82 2.41a8.18 8.18 0 0 1 2.42 5.82c0 4.54-3.69 8.17-8.24 8.17Zm4.52-6.16c-.26-.13-1.55-.76-1.79-.86-.24-.09-.41-.13-.58.14-.17.26-.67.86-.82 1.03-.15.18-.31.2-.57.07-.26-.13-1.1-.4-2.1-1.29-.78-.69-1.3-1.55-1.45-1.81-.15-.26-.02-.4.11-.53.11-.11.26-.3.39-.45.13-.15.17-.26.26-.43.09-.17.04-.32-.02-.45-.07-.13-.58-1.4-.8-1.92-.2-.49-.42-.43-.58-.44h-.5c-.17 0-.45.06-.69.32-.23.26-.9.88-.9 2.15 0 1.27.93 2.5 1.06 2.67.13.17 1.83 2.79 4.44 3.91.62.27 1.1.43 1.48.55.62.2 1.18.17 1.63.1.5-.07 1.55-.63 1.76-1.25.21-.61.21-1.13.15-1.24-.06-.1-.24-.17-.5-.3Z"/></svg></a>
+    <a href="https://instagram.com/granads" target="_blank" aria-label="IG"><svg viewBox="0 0 24 24"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.46.18.87.42 1.28.83.41.41.65.82.83 1.28.16.43.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23a2.9 2.9 0 0 1-.83 1.28 2.9 2.9 0 0 1-1.28.83c-.43.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a2.9 2.9 0 0 1-1.28-.83 2.9 2.9 0 0 1-.83-1.28c-.16-.43-.36-1.06-.41-2.23C2.16 15.58 2.15 15.2 2.15 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.18-.46.42-.87.83-1.28.41-.41.82-.65 1.28-.83.43-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16ZM12 0C8.74 0 8.33.01 7.05.07 5.77.13 4.9.33 4.14.63A4.9 4.9 0 0 0 2 2a4.9 4.9 0 0 0-1.37 2.14c-.3.76-.5 1.63-.56 2.91C0 8.33 0 8.74 0 12s.01 3.67.07 4.95c.06 1.28.26 2.15.56 2.91A4.9 4.9 0 0 0 2 22a4.9 4.9 0 0 0 2.14 1.37c.76.3 1.63.5 2.91.56C8.33 24 8.74 24 12 24s3.67-.01 4.95-.07c1.28-.06 2.15-.26 2.91-.56A4.9 4.9 0 0 0 22 22a4.9 4.9 0 0 0 1.37-2.14c.3-.76.5-1.63.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.28-.26-2.15-.56-2.91A4.9 4.9 0 0 0 22 2a4.9 4.9 0 0 0-2.14-1.37c-.76-.3-1.63-.5-2.91-.56C15.67.01 15.26 0 12 0Zm0 5.84A6.16 6.16 0 1 0 12 18.16 6.16 6.16 0 0 0 12 5.84Zm0 10.16A4 4 0 1 1 12 7.99a4 4 0 0 1 0 8.01Zm6.41-10.4a1.44 1.44 0 1 1-2.88 0 1.44 1.44 0 0 1 2.88 0Z"/></svg></a>
+  </div>
+</footer>
+
+<script>
+function toggleRMobileNav(){
+  document.getElementById('rHamburger').classList.toggle('open');
+  document.getElementById('rMobileNav').classList.toggle('show');
+}
+const RENT_PRICES={kamera:120000,lensa:50000,bundle:150000};
+const RENT_PKG_LABEL={kamera:'Kamera A6400',lensa:'Lensa 35mm',bundle:'Bundle (Kamera + Lensa)'};
+const BULAN_ID=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+function tglID(iso){
+  const p=String(iso||'').slice(0,10).split('-');
+  if(p.length<3||!p[0]||!p[1]||!p[2]) return String(iso||'');
+  return `${parseInt(p[2],10)} ${BULAN_ID[parseInt(p[1],10)-1]||''} ${p[0]}`;
+}
+function localYMD(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function openRentPopup(ok,title,bodyHTML){
+  document.getElementById('rentPopupIcon').textContent=ok?'✓':'!';
+  document.getElementById('rentPopupIcon').style.background=ok?'var(--granads-gold)':'var(--granads-primary)';
+  document.getElementById('rentPopupTitle').textContent=title;
+  document.getElementById('rentPopupBody').innerHTML=bodyHTML;
+  document.getElementById('rentPopup').style.display='flex';
+}
+function closeRentPopup(){document.getElementById('rentPopup').style.display='none'}
+document.getElementById('rentPopup')?.addEventListener('click',e=>{if(e.target.id==='rentPopup')closeRentPopup()});
+function rentMinStr(){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+3);return localYMD(d)}
+function rentRange(start,days){
+  const parts=String(start).slice(0,10).split('-').map(Number);
+  const out=[];
+  for(let i=0;i<days;i++){const t=new Date(parts[0],parts[1]-1,parts[2]+i);out.push(`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`)}
+  return out;
+}
+function updateRentTotal(){
+  const pkg=document.getElementById('rPackage').value;
+  const days=parseInt(document.getElementById('rDays').value)||1;
+  const start=document.getElementById('rStart').value;
+  const total=(RENT_PRICES[pkg]||0)*days;
+  let ret='';
+  if(start){const r=rentRange(start,days);ret=r[r.length-1]}
+  document.getElementById('rTotal').textContent=`Total: Rp${total.toLocaleString('id-ID')} (${days} hari)${ret?' • kembali '+tglID(ret):''}`;
+}
+document.getElementById('rStart')?.addEventListener('change',updateRentTotal);
+document.getElementById('rPackage')?.addEventListener('change',updateRentTotal);
+document.getElementById('rDays')?.addEventListener('change',updateRentTotal);
+document.getElementById('mRelation')?.addEventListener('change',e=>{
+  document.getElementById('mReferrerWrap').style.display=e.target.value==='teman_dari_teman'?'block':'none';
+});
+document.getElementById('rentForm')?.addEventListener('submit',async e=>{
+  e.preventDefault();
+  const btn=document.getElementById('btnRent');btn.disabled=true;btn.textContent='Mengirim...';
+  try{
+    const name=document.getElementById('mName').value.trim();
+    const wa=document.getElementById('mWa').value.trim();
+    const ig=document.getElementById('mIg').value.trim();
+    const relation=document.getElementById('mRelation').value;
+    const referrer=document.getElementById('mReferrer').value.trim();
+    const jaminan=document.getElementById('mJaminan').value;
+    const need=document.getElementById('mNeed').value.trim();
+    const pkg=document.getElementById('rPackage').value;
+    const days=parseInt(document.getElementById('rDays').value)||1;
+    const start=document.getElementById('rStart').value;
+    const note=document.getElementById('rNote').value.trim();
+    if(!name||!wa||!ig||!relation) throw new Error('Lengkapi data diri dulu ya.');
+    if(relation==='teman_dari_teman'&&!referrer) throw new Error('Tulis nama teman owner yang mereferensikanmu.');
+    if(!start) throw new Error('Pilih tanggal ambil dulu.');
+    const mRes=await fetch('/api/members',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,wa,ig,relation,referrer,jaminan,need})});
+    const mJson=await mRes.json();if(!mRes.ok) throw new Error(mJson.error||'Gagal menyimpan data diri');
+    localStorage.setItem('granads_member_id',mJson.id);localStorage.setItem('granads_member_wa',wa);
+    localStorage.setItem('granads_member_name',name);localStorage.setItem('granads_member_ig',ig);
+    const rRes=await fetch('/api/rentals',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({memberId:mJson.id,package:pkg,startDate:start,days,note})});
+    const rJson=await rRes.json();if(!rRes.ok) throw new Error(rJson.error||'Gagal mengajukan sewa');
+    openRentPopup(true,'Pengajuan Sewa Diterima',`
+      <div class="pop-row"><span>Nama</span><b>${escapeHtml(name)}</b></div>
+      <div class="pop-row"><span>Paket</span><b>${RENT_PKG_LABEL[pkg]||pkg}</b></div>
+      <div class="pop-row"><span>Tanggal</span><b>${tglID(rJson.startDate)} sampai ${tglID(rJson.endDate)}</b></div>
+      <div class="pop-row"><span>Total</span><b>Rp${Number(rJson.total||0).toLocaleString('id-ID')}</b></div>
+      <p class="pop-note">Owner akan screening dan konfirmasi via WA ke nomor kamu.</p>`);
+  }catch(err){openRentPopup(false,'Pengajuan Gagal',`<p class="pop-note">${escapeHtml(err.message)}</p>`)}
+  finally{btn.disabled=false;btn.textContent='Ajukan Sewa'}
+});
+(function(){
+  const q=new URLSearchParams(location.search);
+  const pkg=(q.get('package')||'').toLowerCase();
+  if(['kamera','lensa','bundle'].includes(pkg)) document.getElementById('rPackage').value=pkg;
+  document.getElementById('mName').value=localStorage.getItem('granads_member_name')||'';
+  document.getElementById('mWa').value=localStorage.getItem('granads_member_wa')||'';
+  document.getElementById('mIg').value=localStorage.getItem('granads_member_ig')||'';
+  document.getElementById('rStart').min=rentMinStr();
+  updateRentTotal();
+})();
+</script>
+</body>
+</html>

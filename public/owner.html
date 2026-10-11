@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Granads — Pesanan</title>
+<title>Granads: Pesanan</title>
 <link rel="icon" href="/assets/logo/favicon/favicon.ico" type="image/x-icon"/><link rel="apple-touch-icon" href="/assets/logo/logo.png"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -21,6 +21,8 @@
     <a href="/moodboard">Shoots</a>
     <a href="/porto-admin">Portofolio</a>
     <a href="/owner" class="active">Pesanan</a>
+    <a href="/owner#membersCard">Member</a>
+    <a href="/owner#rentalsCard">Sewa</a>
   </div>
   <button class="hamburger" id="hamburgerBtn" aria-label="Menu" onclick="toggleMobileNav()">
     <span></span><span></span><span></span>
@@ -32,6 +34,8 @@
   <a href="/moodboard">Shoots</a>
   <a href="/porto-admin">Portofolio</a>
   <a href="/owner" class="active">Pesanan</a>
+  <a href="/owner#membersCard">Member</a>
+  <a href="/owner#rentalsCard">Sewa</a>
 </div>
 <div id="hiddenAuth" style="display:none;max-width:1100px;margin:0 auto;padding:10px 24px;background:#FFFCF8;border-bottom:1px solid var(--border);align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
   <div>
@@ -72,6 +76,32 @@
       <table class="table" id="bookingsTable">
         <thead><tr><th>Nama / WA</th><th>Tanggal & Waktu</th><th>Lokasi / Konsep</th><th>Status</th><th>Aksi</th></tr></thead>
         <tbody id="bookingsBody"><tr><td colspan="5" class="hint" style="text-align:center;padding:16px">Memuat...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="membersCard" class="card" style="margin-top:18px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <h3 style="margin:0">Member Sewa <span class="hint" style="font-weight:400">(data pendaftar, screening manual, konfirmasi via WA)</span></h3>
+      <button class="btn ghost small" onclick="loadMembers()">Refresh</button>
+    </div>
+    <div style="overflow:auto;margin-top:10px">
+      <table class="table">
+        <thead><tr><th>Nama / WA / IG</th><th>Relasi</th><th>Jaminan</th><th>Aksi</th></tr></thead>
+        <tbody id="membersBody"><tr><td colspan="4" class="hint" style="text-align:center;padding:16px">Memuat...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="rentalsCard" class="card" style="margin-top:18px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <h3 style="margin:0">Sewa Kamera Masuk</h3>
+      <button class="btn ghost small" onclick="loadRentals()">Refresh</button>
+    </div>
+    <div style="overflow:auto;margin-top:10px">
+      <table class="table">
+        <thead><tr><th>Member</th><th>Paket & Tanggal</th><th>Total</th><th>Status</th><th>Aksi</th></tr></thead>
+        <tbody id="rentalsBody"><tr><td colspan="5" class="hint" style="text-align:center;padding:16px">Memuat...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -175,7 +205,7 @@ async function api(path, opts={}){
   const r = await fetch(path, opts);
   const j = await r.json().catch(()=>({}));
   if(!r.ok){
-    if(r.status===401) throw new Error(j.error||'Belum login Google — klik logo Granads lalu Login Google');
+    if(r.status===401) throw new Error(j.error||'Belum login Google. Klik logo Granads lalu Login Google');
     if(r.status===403) throw new Error(j.error||'Akses ditolak');
     throw new Error(j.error||j.message||'Error');
   }
@@ -196,9 +226,9 @@ async function checkAuth(){
     const hint = document.getElementById('authHintHidden');
     const btnLogin = document.getElementById('btnLoginHidden');
     if(hint){
-      if(s.isAdmin) hint.textContent = `Login sebagai ${s.email} — akses owner aktif`;
-      else if(s.loggedIn) hint.textContent = `Login sebagai ${s.email} — bukan admin`;
-      else if(s.configured) hint.textContent = 'Belum login — klik Login Google (hanya nadhasantika63@gmail.com / granadds@gmail.com)';
+      if(s.isAdmin) hint.textContent = `Login sebagai ${s.email}: akses owner aktif`;
+      else if(s.loggedIn) hint.textContent = `Login sebagai ${s.email}: bukan admin`;
+      else if(s.configured) hint.textContent = 'Belum login. Klik Login Google (hanya nadhasantika63@gmail.com / granadds@gmail.com)';
       else hint.textContent = 'OAuth belum dikonfigurasi';
       if(btnLogin) btnLogin.textContent = s.loggedIn ? 'Ganti Akun' : 'Login Google';
     }
@@ -340,7 +370,7 @@ async function openDetail(id){
   detailFilter = 'all';
   document.querySelectorAll('#detailFilters button').forEach(b=>b.classList.toggle('active', b.dataset.f==='all'));
   document.getElementById('detailSection').style.display='block';
-  document.getElementById('detailTitle').textContent = `${p.clientName} — ${p.photos.length} foto • Maks ${p.maxSelection}`;
+  document.getElementById('detailTitle').textContent = `${p.clientName}: ${p.photos.length} foto • Maks ${p.maxSelection}`;
   const _selVals = Object.values(p.selections||{});
   document.getElementById('detailHint').textContent = `Terpilih ${ _selVals.filter(v=>selVal(v)===1).length}/${p.maxSelection}${ _selVals.filter(v=>selNote(v)).length ? ` • ${_selVals.filter(v=>selNote(v)).length} catatan` : ''}`;
   if(p.driveFolders){
@@ -359,7 +389,7 @@ async function openDetail(id){
   if(selectedPhotos.length > 0){
     selectedList.innerHTML = selectedPhotos.map(ph => {
       const n = selNote(sel[ph.id]);
-      return n ? `${esc(ph.filename)} — <span style="color:#8C0009">${esc(n)}</span>` : esc(ph.filename);
+      return n ? `${esc(ph.filename)}: <span style="color:#8C0009">${esc(n)}</span>` : esc(ph.filename);
     }).join('<br>');
     selectedBox.style.display = 'block';
   } else {
@@ -421,7 +451,7 @@ function renderDetail(){
 }
 
 document.getElementById('btnLogoutHidden') && (document.getElementById('btnLogoutHidden').onclick = async ()=>{ await fetch('/auth/logout',{method:'POST'}); checkAuth(); showToast('Logout berhasil','success'); location.reload(); });
-// project UI dihapus dari page pesanan — fungsi tetap ada tapi tidak dipanggil
+// project UI dihapus dari page pesanan. Fungsi tetap ada tapi tidak dipanggil
 const _btnCreate = document.getElementById('btnCreate'); if(_btnCreate) _btnCreate.onclick = createProject;
 const _btnRefresh = document.getElementById('btnRefresh'); if(_btnRefresh) _btnRefresh.onclick = loadProjects;
 const _detailFilters = document.getElementById('detailFilters'); if(_detailFilters) _detailFilters.onclick = (e)=>{
@@ -477,7 +507,7 @@ function renderBookingsTable(data){
       return `<tr>
         <td><b>${esc(b.name)}</b><br><a href="https://wa.me/${esc(b.wa.replace(/[^0-9]/g,''))}" target="_blank" class="mono" style="font-size:11px;color:var(--granads-primary)">${esc(b.wa)}</a><br><span class="hint" style="font-size:11px">${esc(b.people?b.people+' orang':'')}</span></td>
         <td><span class="mono" style="font-size:12px">${esc(d)} • ${esc(t)}</span><br><span class="hint" style="font-size:11px">${esc(new Date(b.createdAt).toLocaleString('id-ID'))}</span></td>
-        <td><div style="font-size:12px">${esc(b.location||'-')}</div><div class="hint" style="font-size:11px">${esc(b.concept||'')}${b.needs?' • '+esc(b.needs):''}</div>${b.note?`<div class="hint" style="font-size:11px;margin-top:2px">Catatan: ${esc(b.note)}</div>`:''}</td>
+        <td><div style="font-size:12px">${esc(b.location||'Belum diisi')}</div><div class="hint" style="font-size:11px">${esc(b.concept||'')}${b.needs?' • '+esc(b.needs):''}</div>${b.note?`<div class="hint" style="font-size:11px;margin-top:2px">Catatan: ${esc(b.note)}</div>`:''}</td>
         <td>${badge(b.status)}</td>
         <td><div style="display:flex;gap:4px;flex-wrap:wrap">
           ${b.status==='pending'?`<button class="btn small gold" onclick="confirmBooking('${b.id}')">Acc</button><button class="btn small ghost" onclick="openReschedule('${b.id}')">Reschedule</button><button class="btn small ghost" style="border-color:#FECACA;color:#B91C1C" onclick="rejectBooking('${b.id}')">Tolak</button>`:''}
@@ -506,10 +536,10 @@ async function deleteBooking(id){
   await loadBookings();
   showToast('Pesanan dihapus.','success');
 }
-// reschedule — atur tanggal/jam baru lalu Acc sinkron kalender
+// reschedule: atur tanggal/jam baru lalu Acc sinkron kalender
 let rescheduleId=null;
 const reschedSlots=[]; for(let h=7;h<=20;h++) for(let m of [0,30]) reschedSlots.push(String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'));
-function getMinDateStr(){ const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()+3); return d.toISOString().slice(0,10); }
+function getMinDateStr(){ const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()+3); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 async function getBookedTimesFor(dateStr){
   try{ const s=await api('/api/schedules'); return s.filter(x=>x.date===dateStr).map(x=>(x.time||'').slice(0,5)); }catch{ return []; }
 }
@@ -519,7 +549,7 @@ async function populateReschedTimes(){
   const booked = d ? await getBookedTimesFor(d) : [];
   sel.innerHTML='<option value="">Pilih jam</option>'+reschedSlots.map(t=>{
     const dis=booked.includes(t);
-    return `<option value="${t}" ${dis?'disabled':''}>${t}${dis?' — Booked':''}</option>`;
+    return `<option value="${t}" ${dis?'disabled':''}>${t}${dis?' (Booked)':''}</option>`;
   }).join('');
 }
 async function openReschedule(id){
@@ -553,8 +583,108 @@ document.getElementById('btnDoReschedule').onclick=async()=>{
 };
 document.getElementById('btnRefreshBookings')?.addEventListener('click', loadBookings);
 
+// --- MEMBER & SEWA (rental kamera) ---
+const REL_LABEL={teman_owner:'Teman owner',teman_dari_teman:'Teman dari teman',bukan:'Bukan keduanya'};
+const JAMINAN_LABEL={ktp:'KTP',sim:'SIM',deposit:'Deposit',ktp_deposit:'KTP + Deposit'};
+async function loadMembers(){
+  try{
+    const data=await api('/api/members');
+    const tb=document.getElementById('membersBody');
+    if(!data.length){tb.innerHTML=`<tr><td colspan="4" class="hint" style="text-align:center;padding:16px">Belum ada member.</td></tr>`;return}
+    tb.innerHTML=data.map(m=>`<tr>
+      <td><b>${esc(m.name)}</b><br><a href="https://wa.me/${wa62(m.wa||'')}" target="_blank" class="mono" style="font-size:11px;color:var(--granads-primary)">${esc(m.wa)}</a><br><span class="hint" style="font-size:11px">${esc(m.ig||'')}</span></td>
+      <td><div style="font-size:12px">${esc(REL_LABEL[m.relation]||m.relation||'Belum diisi')}</div>${m.referrer?`<div class="hint" style="font-size:11px">Ref: ${esc(m.referrer)}</div>`:''}${m.need?`<div class="hint" style="font-size:11px">${esc(m.need)}</div>`:''}</td>
+      <td><span class="hint" style="font-size:11px">${esc(JAMINAN_LABEL[m.jaminan]||m.jaminan||'Belum diisi')}</span></td>
+      <td><div style="display:flex;gap:4px;flex-wrap:wrap">
+        <button class="btn small ghost" style="border-color:#FECACA;color:#B91C1C" onclick="deleteMember('${m.id}')">Hapus</button>
+      </div></td>
+    </tr>`).join('');
+  }catch(e){document.getElementById('membersBody').innerHTML=`<tr><td colspan="4" class="hint" style="text-align:center;padding:16px">${esc(e.message)}</td></tr>`}
+}
+async function deleteMember(id){
+  const ok=await showConfirm('Hapus member ini?');if(!ok)return;
+  await api('/api/members/'+id,{method:'DELETE'});await loadMembers();
+}
+const PKG_LABEL={kamera:'Kamera A6400',lensa:'Lensa 35mm',bundle:'Bundle A6400+35mm'};
+const rentBadge=s=>s==='confirmed'?'<span class="badge ok">confirmed</span>':s==='rejected'?'<span class="badge" style="background:#FEE2E2;border-color:#FECACA;color:#B91C1C">rejected</span>':'<span class="badge warn">pending</span>';
+let rentalsCache=[];
+function wa62(wa){
+  let d=String(wa||'').replace(/[^0-9]/g,'');
+  if(d.startsWith('0')) d='62'+d.slice(1);
+  else if(d && !d.startsWith('62')) d='62'+d;
+  return d;
+}
+const BULAN_ID=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+function tglID(iso){
+  const p=String(iso||'').slice(0,10).split('-');
+  if(p.length<3||!p[0]||!p[1]||!p[2]) return String(iso||'');
+  return `${parseInt(p[2],10)} ${BULAN_ID[parseInt(p[1],10)-1]||''} ${p[0]}`;
+}
+function waTemplateAcc(r){
+  const total=Number(r.total||0).toLocaleString('id-ID');
+  return `Halo kak ${r.memberName||''}, pengajuan sewa ${PKG_LABEL[r.package]||r.package||''} (${tglID(r.startDate)} sampai ${tglID(r.endDate)}, ${r.days||''} hari, total Rp${total}) di Granads kami ACC.\nSilakan kabari jam ambil dan lokasinya ya.\nTerima kasih!\nGranads`;
+}
+function waTemplateReject(r){
+  return `Halo kak ${r.memberName||''}, mohon maaf pengajuan sewa ${PKG_LABEL[r.package]||r.package||''} (${tglID(r.startDate)} sampai ${tglID(r.endDate)}) di Granads belum bisa kami ACC.\nTerima kasih atas pengertiannya!\nGranads`;
+}
+function waLink(r,msg){
+  return `https://wa.me/${wa62(r.memberWa||'')}?text=${encodeURIComponent(msg)}`;
+}
+async function loadRentals(){
+  try{
+    const data=await api('/api/rentals');
+    rentalsCache=data;
+    const tb=document.getElementById('rentalsBody');
+    if(!data.length){tb.innerHTML=`<tr><td colspan="5" class="hint" style="text-align:center;padding:16px">Belum ada pengajuan sewa.</td></tr>`;return}
+    tb.innerHTML=data.map(r=>`<tr>
+      <td><b>${esc(r.memberName||'-')}</b><br><a href="https://wa.me/${wa62(r.memberWa||'')}" target="_blank" class="mono" style="font-size:11px;color:var(--granads-primary)">${esc(r.memberWa||'')}</a></td>
+      <td><div style="font-size:12px;font-weight:700">${esc(PKG_LABEL[r.package]||r.package)}</div><div class="mono" style="font-size:11px">${tglID(r.startDate)} sampai ${tglID(r.endDate)} (${r.days} hari)</div>${r.note?`<div class="hint" style="font-size:11px">${esc(r.note)}</div>`:''}</td>
+      <td><b>Rp${Number(r.total||0).toLocaleString('id-ID')}</b></td>
+      <td>${rentBadge(r.status)}</td>
+      <td><div style="display:flex;gap:4px;flex-wrap:wrap">
+        ${r.status==='pending'?`<button class="btn small gold" onclick="confirmRental('${r.id}')">Acc + WA</button><button class="btn small ghost" style="border-color:#FECACA;color:#B91C1C" onclick="rejectRental('${r.id}')">Tolak + WA</button>`:''}
+        ${r.status==='confirmed'?'<span class="hint" style="font-size:11px">→ Kalender</span>':''}
+        <button class="btn small ghost" style="border-color:#FECACA;color:#B91C1C" onclick="deleteRental('${r.id}')">Hapus</button>
+      </div></td>
+    </tr>`).join('');
+  }catch(e){document.getElementById('rentalsBody').innerHTML=`<tr><td colspan="5" class="hint" style="text-align:center;padding:16px">${esc(e.message)}</td></tr>`}
+}
+async function confirmRental(id){
+  const r=rentalsCache.find(x=>x.id===id);
+  if(!confirm('Acc sewa ini? Tanggal langsung dikunci di kalender & chat WA ke customer dibuka.'))return;
+  const w=r?window.open('about:blank','_blank'):null;
+  try{
+    await api('/api/rentals/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'confirmed'})});
+    await loadRentals();showToast('Sewa di-Acc & masuk kalender. Chat WA dibuka.','success');
+    if(r){
+      const url=waLink(r,waTemplateAcc(r));
+      if(w) w.location.href=url; else window.open(url,'_blank');
+    }
+  }catch(e){ if(w) w.close(); alert(e.message); }
+}
+async function rejectRental(id){
+  const r=rentalsCache.find(x=>x.id===id);
+  if(!confirm('Tolak pengajuan sewa ini? Chat WA penolakan ke customer dibuka.'))return;
+  const w=r?window.open('about:blank','_blank'):null;
+  try{
+    await api('/api/rentals/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'rejected'})});
+    await loadRentals();showToast('Sewa ditolak. Chat WA dibuka.','info');
+    if(r){
+      const url=waLink(r,waTemplateReject(r));
+      if(w) w.location.href=url; else window.open(url,'_blank');
+    }
+  }catch(e){ if(w) w.close(); alert(e.message); }
+}
+async function deleteRental(id){
+  const ok=await showConfirm('Hapus data sewa ini?');if(!ok)return;
+  await api('/api/rentals/'+id,{method:'DELETE'});await loadRentals();
+}
+document.getElementById('btnRefreshBookings')?.addEventListener('click', loadBookings);
+
 checkAuth();
 loadBookings();
+loadMembers();
+loadRentals();
 if(document.getElementById('projectsBody')) loadProjects();
 
 const urlParams = new URLSearchParams(location.search);

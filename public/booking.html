@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Granads — Booking</title>
+<title>Granads: Booking</title>
 <link rel="icon" href="/assets/logo/favicon/favicon.ico" type="image/x-icon"/><link rel="apple-touch-icon" href="/assets/logo/logo.png"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -86,7 +86,7 @@ textarea{resize:vertical;min-height:72px}
   <a href="/portfolio" class="nav-brand"><img src="assets/logo/logo.png" alt="Granads"/></a>
   <div class="nav-links">
     <a href="/portfolio#porto">Porto</a>
-    <a href="/portfolio#jadwal">Jadwal</a>
+    <a href="/rent">Sewa</a>
     <a href="/book" class="active">Book</a>
   </div>
   <button class="b-hamburger" id="bHamburger" aria-label="Menu" onclick="toggleBMobileNav()">
@@ -95,7 +95,7 @@ textarea{resize:vertical;min-height:72px}
 </nav>
 <div class="b-mobile-nav" id="bMobileNav">
   <a href="/portfolio#porto">Porto</a>
-  <a href="/portfolio#jadwal">Jadwal</a>
+  <a href="/rent">Sewa</a>
   <a href="/book" class="active">Book</a>
 </div>
 
@@ -195,13 +195,13 @@ let schedules=[];
 let currentDate=new Date();
 let selectedDate='';
 const monthNames=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-function getMinDateStr(){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+3);return d.toISOString().slice(0,10)}
+function getMinDateStr(){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+3);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 const timeSlots=[];for(let h=7;h<=20;h++){for(let m of [0,30]){timeSlots.push(String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'))}}
 function buildTimeOptions(disabledSet){
   const sel=document.getElementById('fTime');
   sel.innerHTML='<option value="">Pilih jam</option>'+timeSlots.map(t=>{
     const dis=disabledSet.has(t);
-    return `<option value="${t}" ${dis?'disabled':''}>${t}${dis?' — Booked':''}</option>`;
+    return `<option value="${t}" ${dis?'disabled':''}>${t}${dis?' (Booked)':''}</option>`;
   }).join('');
 }
 function initCalDropdowns(){
@@ -222,13 +222,21 @@ function onCalYearChange(){
   currentDate.setFullYear(parseInt(document.getElementById('calYear').value));
   renderCalendar();
 }
+function isRented(dateStr){
+  return schedules.some(s=> s.type==='rental' && (s.date===dateStr || (Array.isArray(s.dates)&&s.dates.includes(dateStr))));
+}
 async function init(){
-  try{schedules=await fetch('/api/public/schedules').then(r=>r.json())}catch{schedules=[]}
   const min=getMinDateStr();document.getElementById('fDate').min=min;
   initCalDropdowns();
   renderCalendar();updateDayInfo();buildTimeOptions(new Set());
   document.getElementById('fDate').addEventListener('change', onDateChange);
   document.getElementById('fTime').addEventListener('change', validateTime);
+  try{
+    const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),10000);
+    schedules=await fetch('/api/public/schedules',{signal:ctl.signal}).then(r=>r.json());
+    clearTimeout(to);
+  }catch{schedules=[]}
+  renderCalendar();updateDayInfo();
 }
 function onDateChange(){
   const d=document.getElementById('fDate').value;
@@ -237,6 +245,10 @@ function onDateChange(){
     document.getElementById('dateWarn').textContent=`Minimal H+3 (paling cepat ${min}).`;document.getElementById('dateWarn').style.display='block';
     document.getElementById('fDate').value='';selectedDate='';renderCalendar();updateDayInfo();return;
   } else document.getElementById('dateWarn').style.display='none';
+  if(isRented(d)){
+    document.getElementById('dateWarn').textContent='Kamera sedang disewa tanggal ini. Pilih tanggal lain.';document.getElementById('dateWarn').style.display='block';
+    document.getElementById('fDate').value='';selectedDate='';renderCalendar();updateDayInfo();return;
+  }
   selectedDate=d;
   renderCalendar();
   const times=getBookedTimes(d);
@@ -254,7 +266,7 @@ function validateTime(){
   const t=document.getElementById('fTime').value;
   if(!d||!t) return;
   if(getBookedTimes(d).includes(t)){
-    document.getElementById('timeWarn').textContent='Jam ini sudah booked, pilih jam lain — admin akan konfirmasi kembali.';document.getElementById('timeWarn').style.display='block';
+    document.getElementById('timeWarn').textContent='Jam ini sudah booked, pilih jam lain. Admin akan konfirmasi kembali.';document.getElementById('timeWarn').style.display='block';
     document.getElementById('fTime').value='';
   } else document.getElementById('timeWarn').style.display='none';
 }
@@ -276,10 +288,15 @@ function renderCalendar(){
     const isToday=today.getFullYear()===year&&today.getMonth()===month&&today.getDate()===d;
     const isSelected=selectedDate===dateStr;
     const isDisabled=dateStr < getMinDateStr();
+    const rented=isRented(dateStr);
     const daySched=schedules.filter(s=>s.date===dateStr);
-    const hasTimes=daySched.map(s=>`<span class="dot">${(s.time||'').slice(0,5)} Booked</span>`).join('');
+    const hasTimes=daySched.map(s=>s.type==='rental'
+      ?`<span class="dot" style="background:#B91C1C">Disewa</span>`
+      :`<span class="dot">${(s.time||'').slice(0,5)} Booked</span>`).join('');
     if(isDisabled){
       html+=`<div class="cal-day disabled${isToday?' today':''}"><div class="num">${d}</div></div>`;
+    } else if(rented){
+      html+=`<div class="cal-day disabled${isToday?' today':''}" title="Kamera sedang disewa"><div class="num">${d}</div><span class="dot" style="background:#B91C1C">Disewa</span></div>`;
     } else {
       html+=`<div class="cal-day${isToday?' today':''}${isSelected?' selected':''}" onclick="pickDate('${dateStr}')"><div class="num">${d}</div>${hasTimes}</div>`;
     }
@@ -289,11 +306,13 @@ function renderCalendar(){
 function updateDayInfo(){
   const d=document.getElementById('fDate').value;
   if(!d){document.getElementById('dayInfo').textContent='';return}
+  if(isRented(d)){document.getElementById('dayInfo').textContent='Kamera sedang disewa tanggal ini. Pilih tanggal lain.';return}
   const times=getBookedTimes(d);
-  document.getElementById('dayInfo').textContent=times.length?`Ter-booked jam: ${times.join(', ')} — jam tersebut disabled di pilihan.`:'Tanggal ini masih kosong, semua jam tersedia.';
+  document.getElementById('dayInfo').textContent=times.length?`Jam yang sudah dibooking: ${times.join(', ')}. Jam tersebut tidak bisa dipilih.`:'Tanggal ini masih kosong, semua jam tersedia.';
 }
 function pickDate(dateStr){
   if(dateStr < getMinDateStr()) return;
+  if(isRented(dateStr)) return;
   document.getElementById('fDate').value=dateStr;
   selectedDate=dateStr;
   onDateChange();
@@ -314,6 +333,7 @@ document.getElementById('bookingForm').addEventListener('submit', async (e)=>{
     note:document.getElementById('fNote').value.trim()
   };
   if(!payload.name||!payload.wa||!payload.date||!payload.time||!payload.duration) return;
+  if(isRented(payload.date)){    document.getElementById('dateWarn').textContent='Kamera sedang disewa tanggal ini. Pilih tanggal lain.';document.getElementById('dateWarn').style.display='block';return;}
   if(payload.date < getMinDateStr()){document.getElementById('dateWarn').textContent=`Minimal H+3 (paling cepat ${getMinDateStr()}).`;document.getElementById('dateWarn').style.display='block';return;}
   if(getBookedTimes(payload.date).includes(payload.time)){
     document.getElementById('timeWarn').textContent='Jam ini sudah booked, pilih jam lain.';document.getElementById('timeWarn').style.display='block';return;

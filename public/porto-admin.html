@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Granads — Portofolio Admin</title>
+<title>Granads: Portofolio Admin</title>
 <link rel="icon" href="/assets/logo/favicon/favicon.ico" type="image/x-icon"/><link rel="apple-touch-icon" href="/assets/logo/logo.png"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -74,7 +74,7 @@
       <h3 style="margin:0">Testimoni</h3>
       <button class="btn ghost small" id="btnRefreshTesti">Refresh</button>
     </div>
-    <p class="hint" style="margin-top:6px">Input testimoni klien — tampil di portfolio (bisa tambah banyak, ada bintang 1-5).</p>
+    <p class="hint" style="margin-top:6px">Input testimoni klien untuk tampil di portfolio (bisa tambah banyak, ada bintang 1 sampai 5).</p>
     <div id="testiInputs" style="display:grid;gap:10px;margin-top:12px"></div>
     <div style="display:flex;gap:8px;margin-top:8px">
       <button class="btn ghost small" id="btnAddTesti">+ Tambah Testimoni</button>
@@ -140,9 +140,9 @@ async function checkAuth(){
     const s=await fetch('/auth/status').then(r=>r.json()); authState=s;
     const hint=document.getElementById('authHintHidden'); const btn=document.getElementById('btnLoginHidden');
     if(hint){
-      if(s.isAdmin) hint.textContent=`Login sebagai ${s.email} — akses owner aktif`;
-      else if(s.loggedIn) hint.textContent=`Login sebagai ${s.email} — bukan admin`;
-      else if(s.configured) hint.textContent='Belum login — klik Login Google';
+      if(s.isAdmin) hint.textContent=`Login sebagai ${s.email}: akses owner aktif`;
+      else if(s.loggedIn) hint.textContent=`Login sebagai ${s.email}: bukan admin`;
+      else if(s.configured) hint.textContent='Belum login. Klik Login Google';
       else hint.textContent='OAuth belum dikonfigurasi';
       if(btn) btn.textContent=s.loggedIn?'Ganti Akun':'Login Google';
     }
@@ -166,7 +166,7 @@ function renderShowcase(){
   const el=document.getElementById('showcaseList');
   const data=[...showcaseData].sort((a,b)=>(a.order||0)-(b.order||0));
   if(!data.length){ el.innerHTML='<div class="hint" style="grid-column:1/-1;text-align:center;padding:12px">Belum ada foto showcase. Isi link Drive di atas lalu Sync.</div>'; return; }
-  const info=data[0]?.driveLink?`<div class="hint" style="grid-column:1/-1;padding:8px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;word-break:break-all;overflow-wrap:anywhere">Folder: <a href="${esc(data[0].driveLink)}" target="_blank" style="color:var(--granads-primary);word-break:break-all">${esc(data[0].driveLink)}</a> • ${data.length} foto — drag urutan & atur crop</div>`:'';
+  const info=data[0]?.driveLink?`<div class="hint" style="grid-column:1/-1;padding:8px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;word-break:break-all;overflow-wrap:anywhere">Folder: <a href="${esc(data[0].driveLink)}" target="_blank" style="color:var(--granads-primary);word-break:break-all">${esc(data[0].driveLink)}</a> • ${data.length} foto. Drag urutan & atur crop</div>`:'';
   const visible=data.slice(0,showcaseLimit);
   el.innerHTML=info+visible.map((it,idx)=>`<div draggable="true" data-id="${esc(it.id)}" data-idx="${idx}" class="sc-card" style="border:1px solid var(--border);border-radius:12px;overflow:hidden;background:white;display:flex;flex-direction:column;cursor:grab;transition:transform .15s,box-shadow .15s">
     <div style="height:140px;background:url('${esc(it.url)}') ${it.posX??50}% ${it.posY??50}%/cover no-repeat;pointer-events:none"></div>
@@ -351,7 +351,7 @@ function renderTestiInputs(){
       <div><label>Nama Client</label><input data-idx="${i}" data-field="name" value="${esc(t.name)}" placeholder="Rina & Dimas"/></div>
       <div><label>Role / Acara</label><input data-idx="${i}" data-field="role" value="${esc(t.role)}" placeholder="Prewedding"/></div>
       <div><label>Isi Testimoni</label><textarea data-idx="${i}" data-field="text" placeholder="Hasilnya melebihi ekspektasi..." rows="2">${esc(t.text)}</textarea></div>
-      <div><label>Bintang (1-5)</label><select data-idx="${i}" data-field="stars"><option value="5" ${t.stars==5?'selected':''}>★★★★★ 5</option><option value="4" ${t.stars==4?'selected':''}>★★★★ 4</option><option value="3" ${t.stars==3?'selected':''}>★★★ 3</option></select></div>
+      <div><label>Bintang (1 sampai 5)</label><select data-idx="${i}" data-field="stars"><option value="5" ${t.stars==5?'selected':''}>★★★★★ 5</option><option value="4" ${t.stars==4?'selected':''}>★★★★ 4</option><option value="3" ${t.stars==3?'selected':''}>★★★ 3</option></select></div>
       <div style="display:flex;gap:6px"><button class="btn ghost small" onclick="moveTesti(${i},-1)" ${i===0?'disabled':''}>↑</button><button class="btn ghost small" onclick="moveTesti(${i},1)" ${i===testiData.length-1?'disabled':''}>↓</button></div>
     </div>`).join('');
   wrap.querySelectorAll('input,textarea,select').forEach(el=>{
@@ -375,7 +375,7 @@ function renderTestiPreview(){
   const el=document.getElementById('testiPreview');
   const valid=testiData.filter(t=>t.text.trim());
   if(!valid.length){ el.innerHTML='<div class="hint" style="grid-column:1/-1;text-align:center;padding:12px">Belum ada testimoni valid.</div>'; return; }
-  el.innerHTML=valid.map(t=>`<div style="border:1px solid var(--border);border-radius:12px;padding:14px;background:white"><div style="color:var(--granads-gold);font-size:12px">${'★'.repeat(t.stars)}</div><p style="font-size:13px;margin:8px 0">"${esc(t.text)}"</p><div style="font-weight:700;font-size:12px">${esc(t.name)} <span style="font-weight:400;color:var(--muted)">— ${esc(t.role)}</span></div></div>`).join('');
+  el.innerHTML=valid.map(t=>`<div style="border:1px solid var(--border);border-radius:12px;padding:14px;background:white"><div style="color:var(--granads-gold);font-size:12px">${'★'.repeat(t.stars)}</div><p style="font-size:13px;margin:8px 0">"${esc(t.text)}"</p><div style="font-weight:700;font-size:12px">${esc(t.name)} <span style="font-weight:400;color:var(--muted)">• ${esc(t.role)}</span></div></div>`).join('');
 }
 document.getElementById('btnAddTesti').onclick=addTesti;
 document.getElementById('btnSaveTesti').onclick=async()=>{

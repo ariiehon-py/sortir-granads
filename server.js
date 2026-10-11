@@ -30,7 +30,7 @@ function requireAdmin(req, res, next){
   const tokens = loadTokens();
   const email = tokens?.email || null;
   if(!tokens) return res.status(401).json({ error: 'Belum login Google. Buka /auth/login dulu.' });
-  if(!email) return res.status(401).json({ error: 'Email tidak terdeteksi. Re-login Google.' });
+  if(!email) return res.status(401).json({ error: 'Email tidak terdeteksi. Login ulang Google.' });
   if(!isAdminEmail(email)) return res.status(403).json({ error: `Akses ditolak untuk ${email}. Hanya ${ALLOWED_EMAILS.join(', ')} yang boleh.` });
   return next();
 }
@@ -59,6 +59,8 @@ const shootsCol = db.collection('shoots');
 const schedulesCol = db.collection('schedules');
 const bookingsCol = db.collection('bookings');
 const showcaseCol = db.collection('showcase');
+const membersCol = db.collection('rentMembers');
+const rentalsCol = db.collection('rentals');
 
 const DATA_DIR = path.join(__dirname, 'data');
 const UPLOAD_DIR = path.join(__dirname, 'uploads');
@@ -607,10 +609,12 @@ app.post('/api/bookings', async (req, res) => {
   note = String(note||'').trim().slice(0,1000);
   // minimal H+3 & blokir sebelum hari ini s/d H+2
   const minD = new Date(); minD.setHours(0,0,0,0); minD.setDate(minD.getDate()+3);
-  const minStr = minD.toISOString().slice(0,10);
-  if(String(date) < minStr) return res.status(400).json({ error: `Minimal booking H+3 (paling cepat ${minStr}).` });
-  // check jam sudah booked (disable jam)
+  const minStr = localYMD(minD);
+  if(String(date) < minStr) return res.status(400).json({ error: `Minimal booking H+3 (paling cepat ${fmtID(minStr)}).` });
+  // check jam sudah booked (disable jam) + tanggal disewa (kamera cuma 1)
   const daySched = await schedulesCol.where('date','==',date).get();
+  const rangeSched = await schedulesCol.where('dates','array-contains',date).get();
+  if(!rangeSched.empty) return res.status(400).json({ error: `Tanggal ${fmtID(date)} kamera sedang disewa. Pilih tanggal lain.` });
   const bookedTimes = daySched.docs.map(d=> (d.data().time||'').slice(0,5));
   if(bookedTimes.includes(String(time).slice(0,5))){
     return res.status(400).json({ error: `Jam ${time} sudah booked. Pilih jam lain.` });
@@ -648,8 +652,10 @@ app.put('/api/bookings/:id', requireAdmin, async (req, res) => {
   const finalStatus = update.status || cur.status;
   if(finalStatus==='confirmed'){
     const minD = new Date(); minD.setHours(0,0,0,0); minD.setDate(minD.getDate()+3);
-    const minStr = minD.toISOString().slice(0,10);
-    if(finalDate < minStr) return res.status(400).json({ error:`Minimal H+3 (paling cepat ${minStr}).` });
+    const minStr = localYMD(minD);
+    if(finalDate < minStr) return res.status(400).json({ error:`Minimal H+3 (paling cepat ${fmtID(minStr)}).` });
+    const rangeSched = await schedulesCol.where('dates','array-contains',finalDate).get();
+    if(!rangeSched.empty) return res.status(400).json({ error:`Tanggal ${fmtID(finalDate)} kamera sedang disewa.` });
     const daySched = await schedulesCol.where('date','==',finalDate).get();
     const bookedTimes = daySched.docs.filter(d=> d.id !== ref.id).map(d=> (d.data().time||'').slice(0,5));
     if(bookedTimes.includes(String(finalTime).slice(0,5))) return res.status(400).json({ error:`Jam ${finalTime} sudah booked.` });
@@ -694,6 +700,150 @@ app.put('/api/bookings/:id', requireAdmin, async (req, res) => {
 });
 app.delete('/api/bookings/:id', requireAdmin, async (req, res) => {
   await bookingsCol.doc(req.params.id).delete();
+  res.json({ ok:true });
+});
+
+// --- RENTAL: member + sewa kamera (kamera cuma 1, sinkron dgn kalender book) ---
+const RENTAL_PRICES = { kamera: 120000, lensa: 50000, bundle: 150000 };
+function rentalDates(startDate, days){
+  const [y,m,dd] = String(startDate).slice(0,10).split('-').map(Number);
+  const out = [];
+  for(let i=0;i<days;i++){
+    const t = new Date(y, m-1, dd+i);
+    out.push(`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`);
+  }
+  return out;
+}
+function localYMD(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+const BULAN_ID=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+function fmtID(iso){
+  const p=String(iso||'').slice(0,10).split('-');
+  if(p.length<3||!p[0]||!p[1]||!p[2]) return String(iso||'');
+  return `${parseInt(p[2],10)} ${BULAN_ID[parseInt(p[1],10)-1]||''} ${p[0]}`;
+}
+async function bookedDateSet(){
+  const snap = await schedulesCol.get();
+  const set = new Set();
+  snap.docs.forEach(doc=>{
+    const d = doc.data();
+    if(d.date) set.add(d.date);
+    if(Array.isArray(d.dates)) d.dates.forEach(x=> set.add(x));
+  });
+  return set;
+}
+// Public: daftar member (pendaftaran)
+app.post('/api/members', async (req, res) => {
+  let { name, wa, ig, relation, referrer, jaminan, need } = req.body;
+  if(!name || !String(name).trim()) return res.status(400).json({ error: 'Nama wajib' });
+  if(!wa || !String(wa).trim()) return res.status(400).json({ error: 'No WA wajib' });
+  if(!relation || !['teman_owner','teman_dari_teman','bukan'].includes(String(relation))) return res.status(400).json({ error: 'Pilih status hubungan dulu' });
+  if(String(relation)==='teman_dari_teman' && (!referrer || !String(referrer).trim())) return res.status(400).json({ error: 'Tulis nama teman owner yang mereferensikanmu' });
+  name = String(name).trim().slice(0,80);
+  wa = String(wa).trim().slice(0,20);
+  const data = { name, wa, ig: String(ig||'').trim().slice(0,60), relation: String(relation), referrer: String(referrer||'').trim().slice(0,80), jaminan: String(jaminan||'ktp_deposit').slice(0,30), need: String(need||'').trim().slice(0,500), createdAt: new Date().toISOString() };
+  const dup = await membersCol.where('wa','==',wa).limit(1).get();
+  if(!dup.empty){
+    const ref = dup.docs[0].ref;
+    await ref.set({ ...data, updatedAt: new Date().toISOString() }, { merge:true });
+    const fresh = await ref.get();
+    return res.json({ ...fresh.data(), id: ref.id });
+  }
+  const ref = await membersCol.add(data);
+  await ref.set({ id: ref.id }, { merge:true });
+  res.json({ ...data, id: ref.id });
+});
+// Public: cek status member by WA
+app.get('/api/members/status', async (req, res) => {
+  const wa = String(req.query.wa||'').trim();
+  if(!wa) return res.json({ found:false });
+  const snap = await membersCol.where('wa','==',wa).limit(1).get();
+  if(snap.empty) return res.json({ found:false });
+  const d = snap.docs[0].data();
+  res.json({ found:true, id: snap.docs[0].id, name: d.name, status: d.status||'pending' });
+});
+// Public: ajukan sewa (butuh memberId)
+app.post('/api/rentals', async (req, res) => {
+  let { memberId, package: pkg, startDate, days, note } = req.body;
+  if(!memberId) return res.status(400).json({ error: 'Isi data diri dulu sebelum sewa' });
+  if(!RENTAL_PRICES[pkg]) return res.status(400).json({ error: 'Pilih paket sewa dulu' });
+  days = Math.max(1, Math.min(7, parseInt(days)||1));
+  if(!startDate) return res.status(400).json({ error: 'Tanggal ambil wajib' });
+  const mdoc = await membersCol.doc(memberId).get();
+  if(!mdoc.exists) return res.status(400).json({ error: 'Data diri tidak ditemukan, isi ulang formnya' });
+  const minD = new Date(); minD.setHours(0,0,0,0); minD.setDate(minD.getDate()+3);
+  const minStr = localYMD(minD);
+  if(String(startDate) < minStr) return res.status(400).json({ error: `Minimal H+3 (paling cepat ${fmtID(minStr)}).` });
+  const dates = rentalDates(String(startDate).slice(0,10), days);
+  const blocked = await bookedDateSet();
+  const clash = dates.filter(d=> blocked.has(d));
+  if(clash.length) return res.status(400).json({ error: `Tanggal ${clash.map(fmtID).join(', ')} sudah dipakai (book/sewa lain). Pilih tanggal lain.` });
+  const data = { memberId, memberName: mdoc.data().name, memberWa: mdoc.data().wa, package: pkg, pricePerDay: RENTAL_PRICES[pkg], days, startDate: dates[0], endDate: dates[dates.length-1], dates, total: RENTAL_PRICES[pkg]*days, note: String(note||'').trim().slice(0,500), status:'pending', createdAt: new Date().toISOString() };
+  const ref = await rentalsCol.add(data);
+  await ref.set({ id: ref.id }, { merge:true });
+  res.json({ ...data, id: ref.id });
+});
+// Admin: list + validasi member & sewa
+app.get('/api/members', requireAdmin, async (req, res) => {
+  const snap = await membersCol.orderBy('createdAt','desc').get();
+  res.json(snap.docs.map(d=> ({ ...d.data(), id:d.id })));
+});
+app.put('/api/members/:id', requireAdmin, async (req, res) => {
+  const { status, adminNote } = req.body;
+  if(status && !['trusted','rejected','pending'].includes(status)) return res.status(400).json({ error:'Status tidak valid' });
+  const upd = { updatedAt: new Date().toISOString() };
+  if(status) upd.status = status;
+  if(adminNote!==undefined) upd.adminNote = String(adminNote).slice(0,500);
+  await membersCol.doc(req.params.id).set(upd, { merge:true });
+  res.json({ ok:true });
+});
+app.delete('/api/members/:id', requireAdmin, async (req, res) => {
+  await membersCol.doc(req.params.id).delete();
+  res.json({ ok:true });
+});
+app.get('/api/rentals', requireAdmin, async (req, res) => {
+  const snap = await rentalsCol.orderBy('createdAt','desc').get();
+  const items = snap.docs.map(d=> ({ ...d.data(), id:d.id }));
+  for(const it of items){
+    if(it.memberId){
+      const m = await membersCol.doc(it.memberId).get().catch(()=>null);
+      it.memberStatus = m && m.exists ? (m.data().status||'pending') : 'hilang';
+    }
+  }
+  res.json(items);
+});
+app.put('/api/rentals/:id', requireAdmin, async (req, res) => {
+  const { status, adminNote } = req.body;
+  const ref = rentalsCol.doc(req.params.id);
+  const doc = await ref.get();
+  if(!doc.exists) return res.status(404).json({ error:'Sewa tidak ditemukan' });
+  const cur = doc.data();
+  if(status==='confirmed'){
+    const m = await membersCol.doc(cur.memberId).get();
+    if(!m.exists) return res.status(400).json({ error:'Data member tidak ditemukan.' });
+    const blocked = await bookedDateSet();
+    const clash = (cur.dates||[]).filter(d=> blocked.has(d));
+    if(clash.length) return res.status(400).json({ error:`Bentrok: ${clash.map(fmtID).join(', ')} sudah dipakai.` });
+    const updConfirmed = { status:'confirmed', updatedAt: new Date().toISOString() };
+    if(adminNote!==undefined) updConfirmed.adminNote = String(adminNote).slice(0,500);
+    else if(cur.adminNote!==undefined) updConfirmed.adminNote = cur.adminNote;
+    await ref.set(updConfirmed, { merge:true });
+    await schedulesCol.doc('rent-'+ref.id).set({ type:'rental', name:'Sewa '+(cur.package||''), date: cur.startDate, dates: cur.dates, time:'', location:'', note:`Sewa ${cur.package}: ${cur.memberName} (${cur.memberWa})`, rentalId: ref.id, createdAt: new Date().toISOString() }, { merge:true });
+  } else if(status==='rejected'){
+    const updRejected = { status:'rejected', updatedAt: new Date().toISOString() };
+    if(adminNote!==undefined) updRejected.adminNote = String(adminNote).slice(0,500);
+    else if(cur.adminNote!==undefined) updRejected.adminNote = cur.adminNote;
+    await ref.set(updRejected, { merge:true });
+    await schedulesCol.doc('rent-'+ref.id).delete().catch(()=>{});
+  } else {
+    return res.status(400).json({ error:'Status harus confirmed/rejected' });
+  }
+  res.json({ ok:true });
+});
+app.delete('/api/rentals/:id', requireAdmin, async (req, res) => {
+  await rentalsCol.doc(req.params.id).delete();
+  await schedulesCol.doc('rent-'+req.params.id).delete().catch(()=>{});
   res.json({ ok:true });
 });
 
@@ -912,6 +1062,7 @@ cleanPages.forEach(p=>{
 });
 app.get('/book', (req,res)=> res.sendFile(path.join(__dirname,'public','booking.html')));
 app.get('/booking', (req,res)=> res.sendFile(path.join(__dirname,'public','booking.html')));
+app.get('/rent', (req,res)=> res.sendFile(path.join(__dirname,'public','rent.html')));
 // redirect .html ke clean URL biar ga keliatan .html
 app.use((req,res,next)=>{
   if(!req.path.endsWith('.html')) return next();
@@ -920,7 +1071,7 @@ app.use((req,res,next)=>{
   const cleanMap = { 'portofolio':'/portfolio', 'jadwal':'/schedule', 'porto-admin':'/porto-admin', 'portofolio-admin':'/porto-admin' };
   if(cleanMap[base]) return res.redirect(301, cleanMap[base]+q);
   if(cleanPages.includes(base)) return res.redirect(301, '/'+base+q);
-  if(['booking','client','download','moodboard-work','projects','schedule','portfolio','owner','porto-admin'].includes(base)) return res.redirect(301, '/'+base+q);
+  if(['booking','rent','client','download','moodboard-work','projects','schedule','portfolio','owner','porto-admin'].includes(base)) return res.redirect(301, '/'+base+q);
   next();
 });
 
