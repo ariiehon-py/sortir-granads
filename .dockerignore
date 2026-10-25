@@ -1,0 +1,12 @@
+node_modules
+.git
+.env
+.env.example
+data
+uploads
+.wrangler
+dist
+*.log
+run.bat
+railway.json
+nixpacks.toml

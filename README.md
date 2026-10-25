@@ -8,7 +8,43 @@ node server.js
 # http://localhost:3000/owner.html
 ```
 
-## Deploy ke Railway + Cloudflare
+## Deploy ke Cloudflare (tanpa Railway)
+Domain production bisa tetap `https://sortir.granads.k3unair.com`. App jalan 100% sama (Express + Firestore + Drive OAuth) di **Cloudflare Containers** — `server.js` tidak diubah sama sekali.
+
+> Butuh **Workers Paid** plan (Containers). Butuh **Docker** nyala di mesin saat deploy (atau deploy via Workers Builds di dashboard).
+
+1. Push ke GitHub (sama seperti cara Railway di bawah).
+2. Install dependensi & login Cloudflare:
+   ```powershell
+   npm install
+   npx wrangler login
+   ```
+3. Set secrets di Worker (sama isinya dengan `.env` / Railway Variables):
+   ```powershell
+   npx wrangler secret put GOOGLE_API_KEY
+   npx wrangler secret put GOOGLE_CLIENT_ID
+   npx wrangler secret put GOOGLE_CLIENT_SECRET
+   npx wrangler secret put GOOGLE_REDIRECT_URI   # https://sortir.granads.k3unair.com/auth/callback
+   npx wrangler secret put ADMIN_EMAILS
+   npx wrangler secret put FIREBASE_PROJECT_ID
+   npx wrangler secret put FIREBASE_CLIENT_EMAIL
+   npx wrangler secret put FIREBASE_PRIVATE_KEY
+   ```
+4. Deploy (build image Docker + Worker):
+   ```powershell
+   npm run deploy
+   # atau: npx wrangler deploy
+   ```
+   Tunggu beberapa menit provisioning container pertama kali.
+5. Custom Domain: Cloudflare Dashboard → Workers & Pages → `granads-sortir` → Settings → Domains & Routes → Custom Domain → `sortir.granads.k3unair.com` (DNS otomatis di zone yang sama).
+6. Google Cloud Console → Credentials → OAuth redirect URI → `https://sortir.granads.k3unair.com/auth/callback`
+7. Cek `https://sortir.granads.k3unair.com/auth/status` → `configured:true`, lalu `/auth/login`.
+
+File terkait Cloudflare: `wrangler.toml`, `Dockerfile`, `src/worker.js` (Worker cuma proxy ke container; isi app tetap `server.js`).
+
+> Catatan: token OAuth (`data/google_tokens.json`) & upload lokal disimpan di disk container — kalau container sleep/wake, file bisa hilang (mirip ephemeral Railway). Kalau butuh persistent, pakai Volume (Railway) atau pindahin storage ke Drive/Firestore.
+
+## Deploy ke Railway + Cloudflare (opsional, masih didukung)
 Domain production: `https://sortir.granads.k3unair.com`
 1. Push ke GitHub (tanpa `gh`, via browser):
    ```powershell

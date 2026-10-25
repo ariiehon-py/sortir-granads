@@ -10,3 +10,5 @@ npm-debug.log*
 .cache/
 dist/
 .vercel/
+.wrangler/
+.dev.vars
